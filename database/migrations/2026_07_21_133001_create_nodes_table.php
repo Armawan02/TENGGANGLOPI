@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('mac_address')->unique();
+            $table->string('owner_name')->nullable();
+            $table->string('contact')->nullable();
             $table->string('status')->default('active'); // active, inactive, offline
             $table->timestamps();
         });

@@ -14,10 +14,14 @@ return new class extends Migration
         Schema::create('alerts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('node_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('resolved_by')->nullable()->constrained('users')->nullOnDelete();
             
             // e.g. "SOS", "Capsizing", "Leak"
             $table->string('type');
             $table->text('message')->nullable();
+            
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
             
             $table->boolean('is_resolved')->default(false);
             $table->timestamps();
