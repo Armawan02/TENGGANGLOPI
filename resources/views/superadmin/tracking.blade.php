@@ -129,9 +129,8 @@
             iconAnchor: [14, 14]
         });
 
-        L.marker([-3.580, 118.930], {icon: shipIcon}).addTo(map)
-            .bindTooltip('<div style="font-weight:700; color:#64748b; font-size:10px;">NODE_01</div><div style="font-weight:700; color:#1e293b; font-size:12px;">Salili Mandar</div><div style="color:#ef4444; font-size:11px; font-weight:600;">Status: Offline</div>', {permanent: true, direction: 'right', offset: [15, 0], className: 'ship-tooltip'})
-            .bindPopup('<strong style="color:#000;">Salili Mandar</strong><br><span style="color:#666;">Status: Offline</span>');
+        var markerNode1 = L.marker([-3.580, 118.930], {icon: shipIcon}).addTo(map)
+            .bindTooltip('<div style="font-weight:700; color:#64748b; font-size:10px;">NODE_01</div><div style="font-weight:700; color:#1e293b; font-size:12px;">Salili Mandar</div><div id="node1_status" style="color:#64748b; font-size:11px; font-weight:600;">Memuat koneksi...</div><div id="node1_data" style="font-size:10px; color:#475569; margin-top:3px; line-height:1.4;"></div>', {permanent: true, direction: 'right', offset: [15, 0], className: 'ship-tooltip'});
         
         L.marker([-3.560, 118.900], {icon: shipIcon}).addTo(map)
             .bindTooltip('<div style="font-weight:700; color:#64748b; font-size:10px;">NODE_02</div><div style="font-weight:700; color:#1e293b; font-size:12px;">Bintang Laut</div><div style="color:#10b981; font-size:11px; font-weight:600;">Status: Online</div>', {permanent: true, direction: 'right', offset: [15, 0], className: 'ship-tooltip'})
@@ -140,6 +139,42 @@
         L.marker([-3.600, 118.950], {icon: shipIcon}).addTo(map)
             .bindTooltip('<div style="font-weight:700; color:#64748b; font-size:10px;">NODE_03</div><div style="font-weight:700; color:#1e293b; font-size:12px;">Harapan Jaya</div><div style="color:#10b981; font-size:11px; font-weight:600;">Status: Online</div>', {permanent: true, direction: 'right', offset: [15, 0], className: 'ship-tooltip'})
             .bindPopup('<strong style="color:#000;">Harapan Jaya</strong><br><span style="color:#22c55e;">Status: Online</span>');
+
+        // ==== LOGIKA PENGAMBILAN DATA FIRESTORE REAL-TIME ====
+        function fetchNode1Data() {
+            fetch("{{ route('api.fleet.node01') }}")
+                .then(response => response.json())
+                .then(res => {
+                    if(res.status === 'success') {
+                        let data = res.data;
+                        let statusEl = document.getElementById('node1_status');
+                        let dataEl = document.getElementById('node1_data');
+                        
+                        if(statusEl && dataEl) {
+                            statusEl.innerHTML = 'Status: Terhubung 🟢';
+                            statusEl.style.color = '#10b981';
+                            
+                            dataEl.innerHTML = `
+                                💧 Air: ${data.waterLevel} cm<br>
+                                ❤️ BPM: ${data.heartbeat}<br>
+                                🧭 Gyro X: ${data.gyroscope.x} | Y: ${data.gyroscope.y} | Z: ${data.gyroscope.z}<br>
+                                🔔 Buzzer: ${data.buzzerSignal}
+                            `;
+                        }
+                    }
+                })
+                .catch(err => {
+                    let statusEl = document.getElementById('node1_status');
+                    if(statusEl) {
+                        statusEl.innerHTML = 'Status: Terputus 🔴';
+                        statusEl.style.color = '#ef4444';
+                    }
+                });
+        }
+        
+        // Panggil pertama kali dan ulang setiap 3 detik
+        fetchNode1Data();
+        setInterval(fetchNode1Data, 3000);
     });
 </script>
 @endsection

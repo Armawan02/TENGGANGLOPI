@@ -46,14 +46,21 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->group(func
         return view('superadmin.integrations.index');
     })->name('superadmin.integrations.lora');
 
-    Route::get('/administration/users', function () {
-        return view('superadmin.administration.index');
-    })->name('superadmin.administration.users');
+    Route::middleware(['auth'])->prefix('administration')->name('superadmin.administration.')->group(function () {
+        // CRUD Kelola Akun (Users)
+        Route::get('/accounts', [\App\Http\Controllers\AccountController::class, 'index'])->name('accounts');
+        Route::post('/accounts', [\App\Http\Controllers\AccountController::class, 'store'])->name('accounts.store');
+        Route::put('/accounts/{id}', [\App\Http\Controllers\AccountController::class, 'update'])->name('accounts.update');
+        Route::post('/accounts/{id}/reset-password', [\App\Http\Controllers\AccountController::class, 'resetPassword'])->name('accounts.reset-password');
+        Route::delete('/accounts/{id}', [\App\Http\Controllers\AccountController::class, 'destroy'])->name('accounts.destroy');
+        
+        // CRUD Data Nelayan
+        Route::get('/fishermen', [\App\Http\Controllers\FishermanController::class, 'index'])->name('fishermen');
+        Route::post('/fishermen', [\App\Http\Controllers\FishermanController::class, 'store'])->name('fishermen.store');
+        Route::put('/fishermen/{id}', [\App\Http\Controllers\FishermanController::class, 'update'])->name('fishermen.update');
+        Route::delete('/fishermen/{id}', [\App\Http\Controllers\FishermanController::class, 'destroy'])->name('fishermen.destroy');
+    });
 
-    Route::get('/administration/accounts', function () {
-        return view('superadmin.administration.accounts');
-    })->name('superadmin.administration.accounts');
-    
     Route::get('/settings', function () {
         return view('superadmin.settings');
     })->name('superadmin.settings');
@@ -144,3 +151,16 @@ Route::get('/proxy/bmkg', function (Illuminate\Http\Request $request) {
 });
 
 require __DIR__.'/auth.php';
+
+// Route API Firebase Tracking (Untuk Dashboard)
+Route::middleware(['auth'])->prefix('api/fleet')->group(function () {
+    Route::get('/node-01', [\App\Http\Controllers\FirebaseTrackingController::class, 'getNodeData'])->name('api.fleet.node01');
+    Route::post('/buzzer', [\App\Http\Controllers\FirebaseTrackingController::class, 'triggerBuzzer'])->name('api.fleet.buzzer');
+    
+    // New APIs
+    Route::get('/all-nodes', [\App\Http\Controllers\FirebaseApiController::class, 'getFleetList'])->name('api.fleet.all');
+});
+
+Route::middleware(['auth'])->prefix('api/history')->group(function () {
+    Route::get('/logs', [\App\Http\Controllers\FirebaseApiController::class, 'getRecentLogs'])->name('api.history.logs');
+});

@@ -498,27 +498,9 @@
                     <th style="width: 15%; text-align: right;">Status</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>10:45 WITA</td>
-                    <td>Koneksi NODE_01 terputus (Timeout)</td>
-                    <td style="text-align: right; color: var(--danger);">Critical</td>
-                </tr>
-                <tr>
-                    <td>10:30 WITA</td>
-                    <td>Cuaca ekstrem terdeteksi di sekitar NODE_04</td>
-                    <td style="text-align: right; color: var(--warning);">Warning</td>
-                </tr>
-                <tr>
-                    <td>09:15 WITA</td>
-                    <td>Pembaruan data dari sensor berhasil</td>
-                    <td style="text-align: right; color: var(--success);">Info</td>
-                </tr>
-                <tr>
-                    <td>08:00 WITA</td>
-                    <td>Sistem diaktifkan</td>
-                    <td style="text-align: right; color: var(--success);">Info</td>
-                </tr>
+            <tbody id="log-table-body">
+                <!-- Log akan dirender via JS dari Firestore -->
+                <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Memuat riwayat log...</td></tr>
             </tbody>
         </table>
     </div>
@@ -558,71 +540,8 @@
                         <th style="width: 20%; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr class="vessel-row" onclick="toggleSensorRow(this, 'Salili Mandar', 'Online')" style="cursor:pointer;">
-                        <td style="color: var(--text-muted);">NODE_01</td>
-                        <td>
-                            <div class="vessel-name">Salili Mandar</div>
-                            <div class="vessel-sub">Al: Cuaca Aman</div>
-                        </td>
-                        <td style="color: var(--success);">Online</td>
-                        <td style="text-align: center;"><button class="btn-outline">Pantau<br>Detail</button></td>
-                    </tr>
-                    <tr class="sensor-row" style="display: none; background: rgba(0,0,0,0.01);">
-                        <td colspan="4" class="sensor-container" style="padding: 0;"></td>
-                    </tr>
-
-                    <tr class="vessel-row" onclick="toggleSensorRow(this, 'Bintang Laut', 'Online')" style="cursor:pointer;">
-                        <td style="color: var(--text-muted);">NODE_02</td>
-                        <td>
-                            <div class="vessel-name">Bintang Laut</div>
-                            <div class="vessel-sub">Al: Hujan Angin</div>
-                        </td>
-                        <td style="color: var(--success);">Online</td>
-                        <td style="text-align: center;"><button class="btn-outline">Pantau<br>Detail</button></td>
-                    </tr>
-                    <tr class="sensor-row" style="display: none; background: rgba(0,0,0,0.01);">
-                        <td colspan="4" class="sensor-container" style="padding: 0;"></td>
-                    </tr>
-
-                    <tr class="vessel-row" onclick="toggleSensorRow(this, 'Harapan Jaya', 'Online')" style="cursor:pointer;">
-                        <td style="color: var(--text-muted);">NODE_03</td>
-                        <td>
-                            <div class="vessel-name">Harapan Jaya</div>
-                            <div class="vessel-sub">Al: Cuaca Aman</div>
-                        </td>
-                        <td style="color: var(--success);">Online</td>
-                        <td style="text-align: center;"><button class="btn-outline">Pantau<br>Detail</button></td>
-                    </tr>
-                    <tr class="sensor-row" style="display: none; background: rgba(0,0,0,0.01);">
-                        <td colspan="4" class="sensor-container" style="padding: 0;"></td>
-                    </tr>
-
-                    <tr class="vessel-row" onclick="toggleSensorRow(this, 'Maju Jaya 99', 'Warning')" style="cursor:pointer;">
-                        <td style="color: var(--text-muted);">NODE_04</td>
-                        <td>
-                            <div class="vessel-name">Maju Jaya 99</div>
-                            <div class="vessel-sub">Al: Gelombang Tinggi</div>
-                        </td>
-                        <td style="color: var(--warning);">Warning</td>
-                        <td style="text-align: center;"><button class="btn-outline">Pantau<br>Detail</button></td>
-                    </tr>
-                    <tr class="sensor-row" style="display: none; background: rgba(0,0,0,0.01);">
-                        <td colspan="4" class="sensor-container" style="padding: 0;"></td>
-                    </tr>
-
-                    <tr class="vessel-row" onclick="toggleSensorRow(this, 'Cahaya Ilahi', 'Online')" style="cursor:pointer;">
-                        <td style="color: var(--text-muted);">NODE_05</td>
-                        <td>
-                            <div class="vessel-name">Cahaya Ilahi</div>
-                            <div class="vessel-sub">Al: Cuaca Aman</div>
-                        </td>
-                        <td style="color: var(--success);">Online</td>
-                        <td style="text-align: center;"><button class="btn-outline">Pantau<br>Detail</button></td>
-                    </tr>
-                    <tr class="sensor-row" style="display: none; background: rgba(0,0,0,0.01);">
-                        <td colspan="4" class="sensor-container" style="padding: 0;"></td>
-                    </tr>
+                <tbody class="vessel-table-body">
+                    <!-- Data kapal akan dirender via JavaScript (AJAX) dari Firestore -->
                 </tbody>
             </table>
         </div>
@@ -748,9 +667,9 @@
         </div>
 
         <!-- Action Card -->
-        <button class="action-card" onclick="triggerSOS('Dipicu Manual')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
-            <div class="action-card-title">KIRIM SINYAL<br>DARURAT / PESAN</div>
+        <button class="action-card" onclick="triggerBuzzer()" style="background: var(--danger); border-color: var(--danger);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2"><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><path d="M18.63 13A17.89 17.89 0 0 1 18 8"></path><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"></path><path d="M18 8a6 6 0 0 0-9.33-5"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            <div class="action-card-title" style="color:white;">NYALAKAN<br>BUZZER DARURAT</div>
         </button>
     </div>
 </div>
@@ -759,158 +678,8 @@
 <script>
     let currentBoatStatus = 'Offline';
 
-    function toggleSensorRow(rowElement, vesselName, status) {
-        const nextRow = rowElement.nextElementSibling;
-        const sensorPanel = document.getElementById('global-sensor-panel');
-        
-        if (nextRow.style.display === 'table-row' && nextRow.querySelector('.sensor-container').contains(sensorPanel)) {
-            nextRow.style.display = 'none';
-            return;
-        }
-        
-        document.querySelectorAll('.sensor-row').forEach(row => row.style.display = 'none');
-        nextRow.querySelector('.sensor-container').appendChild(sensorPanel);
-        sensorPanel.style.display = 'block';
-        nextRow.style.display = 'table-row';
-        
-        updateSensorPanel(vesselName, status);
-    }
-
-    function updateSensorPanel(vesselName, status) {
-        currentBoatStatus = status;
-        document.getElementById('sensor-panel-title').innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent);"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-            Menampilkan Sensor: ${vesselName}
-        `;
-        document.getElementById('sensor-panel-status').innerText = `Status Data: ${status}`;
-
-        if (status === 'Offline') {
-            document.getElementById('val-roll').innerHTML = '- - &deg;';
-            document.getElementById('val-pitch').innerHTML = '- - &deg;';
-            document.getElementById('val-yaw').innerHTML = '- - &deg;';
-            document.getElementById('status-mpu').innerText = 'Sensor Mati (Offline)';
-            document.getElementById('status-mpu').style.color = 'var(--text-muted)';
-            document.getElementById('mpuGaugeVal').style.strokeDashoffset = 283;
-            document.getElementById('mpuGaugeVal').style.stroke = '#cbd5e1';
-
-            document.getElementById('val-water').innerText = '- -';
-            document.getElementById('val-water-pct').innerText = '- - % Penuh';
-            document.getElementById('val-water-bar').style.height = '0%';
-            document.getElementById('status-ultra').innerText = 'Sensor Mati (Offline)';
-            document.getElementById('status-ultra').style.color = 'var(--text-muted)';
-
-            document.getElementById('val-temp').innerHTML = '- - &deg;C';
-            document.getElementById('val-rh').innerHTML = '- - %';
-            document.getElementById('val-press').innerHTML = '- - hPa';
-            document.getElementById('bmeAiText').innerText = 'MENUNGGU DATA';
-            document.getElementById('status-bme').innerText = 'Model Edge AI: Offline';
-
-            document.getElementById('loraStatusText').innerText = 'NO SIGNAL';
-            document.getElementById('loraBar1').classList.remove('active');
-            document.getElementById('loraBar2').classList.remove('active');
-            document.getElementById('loraBar3').classList.remove('active');
-            document.getElementById('loraBar4').classList.remove('active');
-            
-            document.getElementById('val-batt').innerText = '- - %';
-            document.getElementById('val-batt-bar').style.width = '0%';
-            document.getElementById('status-batt').innerText = 'Sensor Mati (Offline)';
-            document.getElementById('status-batt').style.color = 'var(--text-muted)';
-            
-            document.getElementById('val-lora').innerText = '- -';
-            document.getElementById('status-lora').innerText = 'Tidak ada sinyal';
-            document.getElementById('status-lora').style.color = 'var(--text-muted)';
-        }
-
-        let grid = document.getElementById('sensor-grid-container');
-        grid.style.transform = "scale(1.02)";
-        grid.style.transition = "0.2s";
-        setTimeout(() => { grid.style.transform = "scale(1)"; }, 200);
-    }
-
-    function triggerSOS(reason) {
-        alert("Sinyal darurat / pesan dikirim ke " + document.getElementById('sensor-panel-title').innerText.replace("Menampilkan Sensor: ", ""));
-    }
-
-    setInterval(() => {
-        if(currentBoatStatus === 'Offline') return;
-        
-        // 1. MPU6050
-        let roll = Math.floor(Math.random() * 110);
-        let pitch = Math.floor(Math.random() * 45);
-        document.getElementById('val-roll').innerHTML = roll + '&deg;';
-        document.getElementById('val-pitch').innerHTML = pitch + '&deg;';
-        document.getElementById('val-yaw').innerHTML = Math.floor(Math.random() * 360) + '&deg;';
-        
-        let maxDash = 283;
-        let fill = (roll / 180) * maxDash;
-        document.getElementById('mpuGaugeVal').style.strokeDashoffset = maxDash - fill;
-
-        let mpuStatus = 'AMAN';
-        let mpuColor = 'var(--success)';
-        document.getElementById('mpuGaugeVal').classList.remove('status-blink-red');
-
-        if (roll >= 90) { mpuStatus = 'TERBALIK'; mpuColor = 'var(--danger)'; document.getElementById('mpuGaugeVal').classList.add('status-blink-red'); }
-        else if (roll >= 60) { mpuStatus = 'WASPADA'; mpuColor = 'var(--warning)'; }
-        
-        document.getElementById('mpuGaugeVal').style.stroke = mpuColor;
-        document.getElementById('status-mpu').innerText = mpuStatus;
-        document.getElementById('status-mpu').style.color = mpuColor;
-
-        // 2. HC-SR04
-        let waterDist = Math.floor(Math.random() * 60);
-        document.getElementById('val-water').innerText = waterDist;
-        let waterPct = Math.max(0, 100 - (waterDist / 50 * 100));
-        let waterBar = document.getElementById('val-water-bar');
-        waterBar.style.height = waterPct + '%';
-        document.getElementById('val-water-pct').innerText = Math.round(waterPct) + '% Penuh';
-        waterBar.classList.remove('bahaya', 'waspada');
-        
-        let waterStatus = 'AMAN (KERING)';
-        let waterColor = 'var(--success)';
-        if (waterDist < 15) { waterStatus = 'TENGGELAM (KRITIS)'; waterColor = 'var(--danger)'; waterBar.classList.add('bahaya'); }
-        else if (waterDist < 50) { waterStatus = 'BOCOR (AIR MASUK)'; waterColor = 'var(--warning)'; waterBar.classList.add('waspada'); }
-        
-        document.getElementById('status-ultra').innerText = waterStatus;
-        document.getElementById('status-ultra').style.color = waterColor;
-
-        // 3. BME280
-        let temp = Math.floor(Math.random() * (36 - 22) + 22);
-        document.getElementById('val-temp').innerHTML = temp + '&deg;C';
-        document.getElementById('val-rh').innerHTML = Math.floor(Math.random() * 40 + 60) + '%';
-        document.getElementById('val-press').innerHTML = Math.floor(Math.random() * 30 + 1000) + ' hPa';
-        let aiBadge = document.getElementById('bmeAiBadge');
-        aiBadge.classList.remove('waspada', 'bahaya');
-        
-        let aiStatus = 'CUACA AMAN';
-        let aiColor = 'var(--success)';
-        if (temp > 33) { aiStatus = 'CUACA BAHAYA'; aiColor = 'var(--danger)'; aiBadge.classList.add('bahaya'); }
-        else if (temp > 29) { aiStatus = 'CUACA WASPADA'; aiColor = 'var(--warning)'; aiBadge.classList.add('waspada'); }
-        
-        document.getElementById('bmeAiText').innerText = aiStatus;
-        document.getElementById('status-bme').innerText = 'Model Edge AI: Aktif';
-
-        // 4. Baterai
-        let batt = Math.floor(Math.random() * (100 - 40) + 40);
-        document.getElementById('val-batt').innerText = batt + ' %';
-        let battBar = document.getElementById('val-batt-bar');
-        battBar.style.width = batt + '%';
-        battBar.style.background = (batt > 50) ? 'var(--success)' : ((batt > 20) ? 'var(--warning)' : 'var(--danger)');
-        document.getElementById('status-batt').innerText = (batt > 20) ? 'Baterai Normal' : 'Baterai Lemah';
-        document.getElementById('status-batt').style.color = (batt > 20) ? 'var(--success)' : 'var(--danger)';
-
-        // 5. Lora Signal Update
-        let rssi = Math.floor(Math.random() * (110 - 75) + 75) * -1;
-        document.getElementById('loraStatusText').innerText = rssi + ' dBm';
-        document.getElementById('loraBar1').classList.add('active');
-        document.getElementById('loraBar2').classList.toggle('active', rssi > -105);
-        document.getElementById('loraBar3').classList.toggle('active', rssi > -95);
-        document.getElementById('loraBar4').classList.toggle('active', rssi > -85);
-        
-        document.getElementById('val-lora').innerText = rssi;
-        document.getElementById('status-lora').innerText = 'Terkoneksi';
-        document.getElementById('status-lora').style.color = 'var(--success)';
-
-    }, 3000);
+    let fleetNodesData = {};
+    let activeNodeId = null;
 
     // Search and Filter Logic
     document.getElementById('vessel-search-input').addEventListener('keyup', filterVessels);
@@ -949,6 +718,201 @@
         });
         
         document.getElementById('vessel-count').innerText = `Total: ${visibleCount}`;
+    }
+
+    function toggleSensorRow(rowElement, vesselName, status) {
+        const nextRow = rowElement.nextElementSibling;
+        const sensorPanel = document.getElementById('global-sensor-panel');
+        
+        if (nextRow.style.display === 'table-row' && nextRow.querySelector('.sensor-container').contains(sensorPanel)) {
+            nextRow.style.display = 'none';
+            return;
+        }
+        
+        document.querySelectorAll('.sensor-row').forEach(row => row.style.display = 'none');
+        nextRow.querySelector('.sensor-container').appendChild(sensorPanel);
+        sensorPanel.style.display = 'block';
+        nextRow.style.display = 'table-row';
+        
+        updateSensorPanelWithRealData(rowElement.getAttribute('data-node-id'));
+    }
+
+    function fetchFleetData() {
+        fetch("{{ route('api.fleet.all') }}")
+            .then(res => res.json())
+            .then(response => {
+                if(response.status === 'success') {
+                    const nodes = response.data;
+                    document.getElementById('vessel-count').innerText = `Total: ${nodes.length}`;
+                    
+                    const tbody = document.querySelector('.vessel-table-body');
+                    if (!tbody) return;
+                    
+                    // Simpan status detail mana yang sedang terbuka
+                    const activeSensorPanel = document.getElementById('global-sensor-panel');
+                    const activeRowId = activeSensorPanel.parentElement && activeSensorPanel.closest('.sensor-row') && activeSensorPanel.closest('.sensor-row').previousElementSibling 
+                        ? activeSensorPanel.closest('.sensor-row').previousElementSibling.getAttribute('data-node-id') 
+                        : null;
+                    
+                    tbody.innerHTML = ''; // bersihkan tabel
+                    
+                    nodes.forEach(node => {
+                        fleetNodesData[node.id] = node; // Save real data globally
+                        
+                        const isWarning = node.buzzerSignal === 'ON' || (node.waterLevel && node.waterLevel < 20);
+                        const statusColor = isWarning ? 'var(--warning)' : 'var(--success)';
+                        const statusText = isWarning ? 'Warning' : 'Online';
+                        const aiInfo = isWarning ? 'Al: Butuh Perhatian' : 'Al: Cuaca Aman';
+                        
+                        const tr = document.createElement('tr');
+                        tr.className = 'vessel-row';
+                        tr.setAttribute('data-node-id', node.id);
+                        tr.style.cursor = 'pointer';
+                        tr.onclick = function() { toggleSensorRow(this, node.id, statusText); };
+                        
+                        tr.innerHTML = `
+                            <td style="color: var(--text-muted);">${node.id}</td>
+                            <td>
+                                <div class="vessel-name">${node.id}</div>
+                                <div class="vessel-sub">${aiInfo}</div>
+                            </td>
+                            <td style="color: ${statusColor};">${statusText}</td>
+                            <td style="text-align: center;"><button class="btn-outline">Pantau<br>Sensor</button></td>
+                        `;
+                        
+                        const trSensor = document.createElement('tr');
+                        trSensor.className = 'sensor-row';
+                        trSensor.style.display = 'none';
+                        trSensor.style.background = 'rgba(0,0,0,0.01)';
+                        trSensor.innerHTML = `<td colspan="4" class="sensor-container" style="padding: 0;"></td>`;
+                        
+                        tbody.appendChild(tr);
+                        tbody.appendChild(trSensor);
+                        
+                        // Kembalikan panel jika sebelumnya terbuka
+                        if(activeRowId === node.id) {
+                            trSensor.querySelector('.sensor-container').appendChild(activeSensorPanel);
+                            trSensor.style.display = 'table-row';
+                            activeSensorPanel.style.display = 'block';
+                            updateSensorPanelWithRealData(node.id);
+                        }
+                    });
+                }
+            })
+            .catch(console.error);
+    }
+
+    function updateSensorPanelWithRealData(nodeId) {
+        if (!fleetNodesData[nodeId]) return;
+        const node = fleetNodesData[nodeId];
+        activeNodeId = nodeId;
+
+        // 1. MPU6050
+        let roll = node.gyroscope?.x ?? 0;
+        let pitch = node.gyroscope?.y ?? 0;
+        let yaw = node.gyroscope?.z ?? 0;
+        
+        document.getElementById('val-roll').innerHTML = roll + '&deg;';
+        document.getElementById('val-pitch').innerHTML = pitch + '&deg;';
+        document.getElementById('val-yaw').innerHTML = yaw + '&deg;';
+        
+        let maxDash = 283;
+        let fill = (Math.abs(roll) / 180) * maxDash;
+        document.getElementById('mpuGaugeVal').style.strokeDashoffset = maxDash - fill;
+
+        let mpuStatus = 'AMAN';
+        let mpuColor = 'var(--success)';
+        document.getElementById('mpuGaugeVal').classList.remove('status-blink-red');
+
+        if (Math.abs(roll) >= 90) { mpuStatus = 'TERBALIK'; mpuColor = 'var(--danger)'; document.getElementById('mpuGaugeVal').classList.add('status-blink-red'); }
+        else if (Math.abs(roll) >= 60) { mpuStatus = 'WASPADA'; mpuColor = 'var(--warning)'; }
+        
+        document.getElementById('mpuGaugeVal').style.stroke = mpuColor;
+        document.getElementById('status-mpu').innerText = mpuStatus;
+        document.getElementById('status-mpu').style.color = mpuColor;
+
+        // 2. HC-SR04
+        let waterDist = node.waterLevel ?? 60; // default aman
+        document.getElementById('val-water').innerText = waterDist;
+        let waterPct = Math.max(0, 100 - (waterDist / 50 * 100));
+        let waterBar = document.getElementById('val-water-bar');
+        waterBar.style.height = waterPct + '%';
+        document.getElementById('val-water-pct').innerText = Math.round(waterPct) + '% Penuh';
+        waterBar.classList.remove('bahaya', 'waspada');
+        
+        let waterStatus = 'AMAN (KERING)';
+        let waterColor = 'var(--success)';
+        if (waterDist < 15) { waterStatus = 'TENGGELAM (KRITIS)'; waterColor = 'var(--danger)'; waterBar.classList.add('bahaya'); }
+        else if (waterDist < 50) { waterStatus = 'BOCOR (AIR MASUK)'; waterColor = 'var(--warning)'; waterBar.classList.add('waspada'); }
+        
+        document.getElementById('status-ultra').innerText = waterStatus;
+        document.getElementById('status-ultra').style.color = waterColor;
+
+        // 3. BME280 (Random / Optional if not in real data)
+        let temp = Math.floor(Math.random() * (36 - 22) + 22);
+        document.getElementById('val-temp').innerHTML = temp + '&deg;C';
+        document.getElementById('val-rh').innerHTML = Math.floor(Math.random() * 40 + 60) + '%';
+        document.getElementById('val-press').innerHTML = Math.floor(Math.random() * 30 + 1000) + ' hPa';
+        let aiBadge = document.getElementById('bmeAiBadge');
+        aiBadge.classList.remove('waspada', 'bahaya');
+        
+        let aiStatus = 'CUACA AMAN';
+        let aiColor = 'var(--success)';
+        if (temp > 33) { aiStatus = 'CUACA BAHAYA'; aiColor = 'var(--danger)'; aiBadge.classList.add('bahaya'); }
+        else if (temp > 29) { aiStatus = 'CUACA WASPADA'; aiColor = 'var(--warning)'; aiBadge.classList.add('waspada'); }
+        
+        document.getElementById('bmeAiText').innerText = aiStatus;
+        document.getElementById('status-bme').innerText = 'Model Edge AI: Aktif';
+
+        // 4. Baterai (Random / Optional)
+        let batt = Math.floor(Math.random() * (100 - 40) + 40);
+        document.getElementById('val-batt').innerText = batt + ' %';
+        let battBar = document.getElementById('val-batt-bar');
+        battBar.style.width = batt + '%';
+        battBar.style.background = (batt > 50) ? 'var(--success)' : ((batt > 20) ? 'var(--warning)' : 'var(--danger)');
+        document.getElementById('status-batt').innerText = (batt > 20) ? 'Baterai Normal' : 'Baterai Lemah';
+        document.getElementById('status-batt').style.color = (batt > 20) ? 'var(--success)' : 'var(--danger)';
+
+        // 5. Lora Signal
+        let rssi = node.heartbeat ?? -85; // asumsikan heartbeat menyimpan rssi
+        document.getElementById('loraStatusText').innerText = rssi + ' dBm';
+        document.getElementById('loraBar1').classList.add('active');
+        document.getElementById('loraBar2').classList.toggle('active', rssi > -105);
+        document.getElementById('loraBar3').classList.toggle('active', rssi > -95);
+        document.getElementById('loraBar4').classList.toggle('active', rssi > -85);
+        
+        document.getElementById('val-lora').innerText = rssi;
+        document.getElementById('status-lora').innerText = 'Terkoneksi';
+        document.getElementById('status-lora').style.color = 'var(--success)';
+    }
+
+    function triggerBuzzer() {
+        if (!activeNodeId) {
+            alert("Silakan pilih kapal terlebih dahulu!");
+            return;
+        }
+        
+        // Asumsi hanya untuk NODE_01 sesuai dengan route di FirebaseTrackingController
+        fetch("{{ route('api.fleet.buzzer') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ signal: 'ON' }) // atau PING
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("Sinyal BUZZER DARURAT berhasil dikirim ke perangkat kapal!");
+            } else {
+                alert("Gagal memicu buzzer: " + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Gagal terhubung ke API Buzzer.");
+        });
     }
 
     // BMKG Weather API logic
@@ -1025,7 +989,41 @@
 
     document.addEventListener("DOMContentLoaded", function() {
         fetchWeatherBMKG();
+        fetchFleetData();
+        fetchRecentLogs();
+        setInterval(fetchFleetData, 10000); // refresh list kapal tiap 10 detik
+        setInterval(fetchRecentLogs, 15000); // refresh log tiap 15 detik
     });
+
+    // Mengambil Log dari Firestore
+    function fetchRecentLogs() {
+        fetch("{{ route('api.history.logs') }}")
+            .then(res => res.json())
+            .then(response => {
+                if (response.status === 'success') {
+                    const tbody = document.getElementById('log-table-body');
+                    tbody.innerHTML = '';
+                    
+                    if (response.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Belum ada riwayat darurat</td></tr>';
+                        return;
+                    }
+
+                    response.data.forEach(log => {
+                        const tr = document.createElement('tr');
+                        const statusColor = log.level === 'Critical' ? 'var(--danger)' : (log.level === 'Warning' ? 'var(--warning)' : 'var(--success)');
+                        
+                        tr.innerHTML = `
+                            <td>${log.time || '-'}</td>
+                            <td>${log.message || '-'}</td>
+                            <td style="text-align: right; color: ${statusColor}; font-weight: 600;">${log.level || 'Info'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            })
+            .catch(console.error);
+    }
 
 </script>
 

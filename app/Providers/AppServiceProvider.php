@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\Auth::provider('firestore', function ($app, array $config) {
+            return new \App\Providers\FirestoreUserProvider();
+        });
     }
 }

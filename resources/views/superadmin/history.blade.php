@@ -93,45 +93,54 @@
                     <th style="width: 15%; text-align: right;">Status</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td style="color: var(--text-muted);">Hari ini, 14:30</td>
-                    <td style="font-weight: 600;">Salili Mandar</td>
-                    <td>[OFFLINE] Node Salili Mandar tidak merespon ping selama 8 detik.</td>
-                    <td style="text-align: right;"><span class="badge warning"><span style="color:var(--warning)">●</span> WARNING</span></td>
-                </tr>
-                <tr>
-                    <td style="color: var(--text-muted);">Hari ini, 13:15</td>
-                    <td style="font-weight: 600;">Bintang Laut</td>
-                    <td>[ROLL] Kemiringan kapal mencapai 65 derajat. Resiko terbalik.</td>
-                    <td style="text-align: right;"><span class="badge danger"><span style="color:var(--danger)">●</span> CRITICAL</span></td>
-                </tr>
-                <tr>
-                    <td style="color: var(--text-muted);">Hari ini, 11:00</td>
-                    <td style="font-weight: 600;">Harapan Jaya</td>
-                    <td>[SYSTEM] Modul GPS kembali online. Koordinat terkalibrasi.</td>
-                    <td style="text-align: right;"><span class="badge success"><span style="color:var(--success)">●</span> RECOVERED</span></td>
-                </tr>
-                <tr>
-                    <td style="color: var(--text-muted);">Kemarin, 22:10</td>
-                    <td style="font-weight: 600;">Maju Jaya 99</td>
-                    <td>[WEATHER] Cuaca memburuk di koordinat -3.582, 118.990. Angin 25 knot.</td>
-                    <td style="text-align: right;"><span class="badge info"><span style="color:var(--accent)">●</span> INFO</span></td>
-                </tr>
-                <tr>
-                    <td style="color: var(--text-muted);">Kemarin, 19:45</td>
-                    <td style="font-weight: 600;">Cahaya Ilahi</td>
-                    <td>[LEAK] Sensor ultrasonik mendeteksi debit air 20cm di lambung.</td>
-                    <td style="text-align: right;"><span class="badge warning"><span style="color:var(--warning)">●</span> WARNING</span></td>
-                </tr>
-                <tr>
-                    <td style="color: var(--text-muted);">Kemarin, 15:30</td>
-                    <td style="font-weight: 600;">Semua Kapal</td>
-                    <td>[BROADCAST] Peringatan dini gelombang tinggi dari BMKG diteruskan.</td>
-                    <td style="text-align: right;"><span class="badge info"><span style="color:var(--accent)">●</span> INFO</span></td>
-                </tr>
+            <tbody id="history-table-body">
+                <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Memuat riwayat log...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        fetchHistoryLogs();
+        setInterval(fetchHistoryLogs, 15000);
+    });
+
+    function fetchHistoryLogs() {
+        fetch("{{ route('api.history.logs') }}")
+            .then(res => res.json())
+            .then(response => {
+                if (response.status === 'success') {
+                    const tbody = document.getElementById('history-table-body');
+                    tbody.innerHTML = '';
+                    
+                    if (response.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Belum ada riwayat darurat</td></tr>';
+                        return;
+                    }
+
+                    response.data.forEach(log => {
+                        const tr = document.createElement('tr');
+                        
+                        let badgeClass = 'info';
+                        let badgeColor = 'var(--accent)';
+                        if(log.level === 'Critical') { badgeClass = 'danger'; badgeColor = 'var(--danger)'; }
+                        else if(log.level === 'Warning') { badgeClass = 'warning'; badgeColor = 'var(--warning)'; }
+                        else if(log.level === 'Recovered') { badgeClass = 'success'; badgeColor = 'var(--success)'; }
+                        
+                        tr.innerHTML = `
+                            <td style="color: var(--text-muted);">${log.time || '-'}</td>
+                            <td style="font-weight: 600;">${log.node_id || '-'}</td>
+                            <td>${log.message || '-'}</td>
+                            <td style="text-align: right;">
+                                <span class="badge ${badgeClass}"><span style="color:${badgeColor}">●</span> ${log.level ? log.level.toUpperCase() : 'INFO'}</span>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            })
+            .catch(console.error);
+    }
+</script>
 @endsection
