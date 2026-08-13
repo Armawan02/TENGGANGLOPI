@@ -9,6 +9,14 @@ if (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL'])) {
     $_SERVER['APP_SERVICES_CACHE'] = $tmpDir . '/services.php';
     $_SERVER['VIEW_COMPILED_PATH'] = $tmpDir;
     $_SERVER['CACHE_PREFIX'] = 'tengganglopi_';
+    $_SERVER['APP_MAINTENANCE_DRIVER'] = 'file';
+    $_ENV['APP_MAINTENANCE_DRIVER'] = 'file';
+    $_SERVER['CACHE_STORE'] = 'array';
+    $_ENV['CACHE_STORE'] = 'array';
+    $_SERVER['SESSION_DRIVER'] = 'cookie';
+    $_ENV['SESSION_DRIVER'] = 'cookie';
+    $_SERVER['QUEUE_CONNECTION'] = 'sync';
+    $_ENV['QUEUE_CONNECTION'] = 'sync';
 
     // Buat direktori temp jika belum ada
     $dirs = [
