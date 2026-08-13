@@ -5,7 +5,8 @@ namespace App\Http\Requests;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use App\Services\FirebaseService;
+use Closure;
 
 class ProfileUpdateRequest extends FormRequest
 {
@@ -24,7 +25,13 @@ class ProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
+                function (string $attribute, mixed $value, Closure $fail) {
+                    $firebase = app(FirebaseService::class);
+                    $exists = $firebase->runSimpleQuery('users', 'email', '=', $value);
+                    if (count($exists) > 0 && $exists[0]['id'] !== $this->user()->id) {
+                        $fail('The '.$attribute.' has already been taken.');
+                    }
+                },
             ],
         ];
     }

@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use App\Services\FirebaseService;
+use Closure;
 
 class RegisteredUserController extends Controller
 {
@@ -32,7 +34,16 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => [
+                'required', 'string', 'lowercase', 'email', 'max:255',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    $firebase = app(FirebaseService::class);
+                    $exists = $firebase->runSimpleQuery('users', 'email', '=', $value);
+                    if (count($exists) > 0) {
+                        $fail('The '.$attribute.' has already been taken.');
+                    }
+                },
+            ],
             'role' => ['required', 'string', 'in:superadmin,petugas'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
