@@ -34,6 +34,7 @@
         "SESSION_DRIVER": "cookie",
         "SESSION_LIFETIME": "120",
         "SESSION_COOKIE": "tengganglopi_session",
+        "BCRYPT_ROUNDS": "12",
         "APP_MAINTENANCE_DRIVER": "file",
         "QUEUE_CONNECTION": "sync",
         "LOG_CHANNEL": "stderr",

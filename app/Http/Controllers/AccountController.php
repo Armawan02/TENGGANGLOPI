@@ -51,7 +51,7 @@ class AccountController extends Controller
             $data = [
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => Hash::make($request->password), // WAJIB DI HASH
+                'password' => Hash::make($request->password, ['rounds' => 12]), // WAJIB DI HASH
                 'role' => $request->role,
                 'phone' => $request->phone ?? '-',
                 'created_at' => time(),
@@ -126,7 +126,7 @@ class AccountController extends Controller
                 return redirect()->back()->with('error', 'Data akun tidak ditemukan.');
             }
 
-            $doc['password'] = Hash::make($request->password);
+            $doc['password'] = Hash::make($request->password, ['rounds' => 12]);
             $doc['updated_at'] = time();
 
             $this->firebaseService->saveDocument($this->collection, $doc, $id);
