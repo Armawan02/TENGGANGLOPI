@@ -32,7 +32,7 @@
         
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
         
-        /* Theme Engine Script (Must be in head to prevent flickering) */
+        /* Theme Engine Script ( head to prevent flickering) */
         <script>
             (function() {
                 const theme = localStorage.getItem('tengganglopi_theme') || 'cerah';
