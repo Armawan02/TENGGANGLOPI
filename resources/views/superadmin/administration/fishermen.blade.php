@@ -218,7 +218,7 @@
                 <th>Nama Lengkap</th>
                 <th>NIK</th>
                 <th>No. HP</th>
-                <th>Nama Kapal</th>
+                <th>Kapal & ID Node</th>
                 <th>Alamat</th>
                 <th>Aksi</th>
             </tr>
@@ -230,8 +230,15 @@
                     <td>{{ $f['nik'] ?? '-' }}</td>
                     <td>{{ $f['phone'] ?? '-' }}</td>
                     <td>
-                        @if(!empty($f['boat_name']))
-                            <span style="background: rgba(37,99,235,0.1); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">{{ $f['boat_name'] }}</span>
+                        @if(!empty($f['boat_name']) || !empty($f['node_id']))
+                            @if(!empty($f['boat_name']))
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">{{ $f['boat_name'] }}</div>
+                            @endif
+                            @if(!empty($f['node_id']))
+                                <span style="background: rgba(37,99,235,0.1); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">NODE: {{ $f['node_id'] }}</span>
+                            @else
+                                <span style="background: rgba(245,158,11,0.1); color: var(--warning); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">BELUM ADA NODE</span>
+                            @endif
                         @else
                             -
                         @endif
@@ -240,7 +247,7 @@
                     <td>
                         <div class="action-buttons">
                             <!-- Edit Button -->
-                            <button class="btn-icon btn-edit" onclick="openEditModal('{{ $f['id'] }}', '{{ $f['name'] ?? '' }}', '{{ $f['nik'] ?? '' }}', '{{ $f['phone'] ?? '' }}', '{{ $f['boat_name'] ?? '' }}', '{{ $f['address'] ?? '' }}')">
+                            <button class="btn-icon btn-edit" onclick="openEditModal('{{ $f['id'] }}', '{{ addslashes($f['name'] ?? '') }}', '{{ $f['nik'] ?? '' }}', '{{ $f['phone'] ?? '' }}', '{{ addslashes($f['boat_name'] ?? '') }}', '{{ addslashes($f['address'] ?? '') }}', '{{ $f['node_id'] ?? '' }}')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                             </button>
                             <!-- Delete Form -->
@@ -291,6 +298,11 @@
                 <input type="text" name="boat_name" class="form-control" placeholder="Contoh: Bintang Laut">
             </div>
             <div class="form-group">
+                <label>ID Node LoRa (Jika Ada)</label>
+                <input type="text" name="node_id" class="form-control" placeholder="Contoh: node-01">
+                <small style="color: var(--text-muted); font-size: 11px; margin-top: 5px; display: block;">ID Node ini akan menghubungkan kapal nelayan ke Dashboard Pemantauan.</small>
+            </div>
+            <div class="form-group">
                 <label>Alamat Lengkap</label>
                 <textarea name="address" class="form-control" rows="3" placeholder="Masukkan alamat..."></textarea>
             </div>
@@ -329,6 +341,10 @@
                 <input type="text" name="boat_name" id="edit_boat" class="form-control">
             </div>
             <div class="form-group">
+                <label>ID Node LoRa (Jika Ada)</label>
+                <input type="text" name="node_id" id="edit_node" class="form-control" placeholder="Contoh: node-01">
+            </div>
+            <div class="form-group">
                 <label>Alamat Lengkap</label>
                 <textarea name="address" id="edit_address" class="form-control" rows="3"></textarea>
             </div>
@@ -349,7 +365,7 @@
         document.getElementById(id).classList.remove('active');
     }
 
-    function openEditModal(id, name, nik, phone, boat, address) {
+    function openEditModal(id, name, nik, phone, boat, address, node_id) {
         // Set Action URL
         document.getElementById('editForm').action = "/superadmin/administration/fishermen/" + id;
         
@@ -358,6 +374,7 @@
         document.getElementById('edit_nik').value = nik;
         document.getElementById('edit_phone').value = phone;
         document.getElementById('edit_boat').value = boat;
+        document.getElementById('edit_node').value = node_id;
         document.getElementById('edit_address').value = address;
         
         openModal('editModal');

@@ -773,8 +773,8 @@
                         tr.innerHTML = `
                             <td style="color: var(--text-muted);">${node.id}</td>
                             <td>
-                                <div class="vessel-name">${node.id}</div>
-                                <div class="vessel-sub">${aiInfo}</div>
+                                <div class="vessel-name">${node.vesselName || node.id}</div>
+                                <div class="vessel-sub">${node.fishermanName || 'Unknown'} - ${aiInfo}</div>
                             </td>
                             <td style="color: ${statusColor};">${statusText}</td>
                             <td style="text-align: center;"><button class="btn-outline">Pantau<br>Sensor</button></td>

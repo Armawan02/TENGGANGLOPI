@@ -43,10 +43,11 @@ class FishermanController extends Controller
             'phone' => 'nullable|string|max:15',
             'address' => 'nullable|string',
             'boat_name' => 'nullable|string|max:255',
+            'node_id' => 'nullable|string|max:255',
         ]);
 
         try {
-            $data = $request->only(['name', 'nik', 'phone', 'address', 'boat_name']);
+            $data = $request->only(['name', 'nik', 'phone', 'address', 'boat_name', 'node_id']);
             $data['created_at'] = time();
 
             $this->firebaseService->saveDocument($this->collection, $data);
@@ -68,6 +69,7 @@ class FishermanController extends Controller
             'phone' => 'nullable|string|max:15',
             'address' => 'nullable|string',
             'boat_name' => 'nullable|string|max:255',
+            'node_id' => 'nullable|string|max:255',
         ]);
 
         try {
@@ -83,6 +85,7 @@ class FishermanController extends Controller
             $doc['phone'] = $request->phone;
             $doc['address'] = $request->address;
             $doc['boat_name'] = $request->boat_name;
+            $doc['node_id'] = $request->node_id;
             $doc['updated_at'] = time();
 
             $this->firebaseService->saveDocument($this->collection, $doc, $id);

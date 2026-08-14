@@ -20,11 +20,24 @@ class FirebaseApiController extends Controller
     public function getFleetList()
     {
         try {
-            $fleet = $this->firebaseService->getCollection('fleet');
+            // Ambil dari collection fishermen, filter yang memiliki node_id
+            $fishermen = $this->firebaseService->getCollection('fishermen');
+            
+            $activeFleet = [];
+            foreach ($fishermen as $f) {
+                if (!empty($f['node_id'])) {
+                    $activeFleet[] = [
+                        'id' => $f['node_id'], // Dashboard JS menggunakan 'id' sebagai referensi telemetry (e.g. node-01)
+                        'vesselName' => !empty($f['boat_name']) ? $f['boat_name'] : 'Kapal Tanpa Nama',
+                        'fishermanName' => !empty($f['name']) ? $f['name'] : 'Tidak Diketahui',
+                        'buzzerSignal' => $f['buzzerSignal'] ?? 'OFF', // Default
+                    ];
+                }
+            }
             
             return response()->json([
                 'status' => 'success',
-                'data' => $fleet
+                'data' => $activeFleet
             ]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
