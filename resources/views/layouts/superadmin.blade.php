@@ -486,10 +486,32 @@
         .lora-status-text {
             font-size: 11px; font-weight: 700; color: var(--text-muted); margin-left: 5px; margin-bottom: 2px;
         }
+
+        /* Responsive Mobile Settings */
+        .mobile-menu-btn { display: none; background: transparent; border: none; cursor: pointer; color: var(--text-primary); }
+        .mobile-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; }
+        
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; padding: 20px; }
+            .topbar { flex-direction: column; align-items: stretch; gap: 15px; }
+            .topbar > div { flex-wrap: wrap; }
+            .topbar-clock-card { min-width: 100%; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+            .mobile-overlay.active { display: block; }
+        }
     </style>
     @yield('styles')
 </head>
 <body>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
     <!-- Sidebar -->
     <aside class="sidebar">
         <!-- Logo & Header -->
@@ -564,9 +586,14 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="topbar">
-            <div class="topbar-left">
-                <h1>@yield('title', 'Dashboard')</h1>
-                <p>@yield('subtitle', 'System Status: Healthy')</p>
+            <div class="topbar-left" style="display: flex; align-items: center; gap: 15px;">
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div>
+                    <h1>@yield('title', 'Dashboard')</h1>
+                    <p>@yield('subtitle', 'System Status: Healthy')</p>
+                </div>
             </div>
             <div style="display: flex; align-items: center; gap: 20px;">
                 <div class="topbar-clock-card">
@@ -606,10 +633,31 @@
             btnCollapse.innerHTML = sidebar.classList.contains('collapsed') ? iconHamburger : iconX;
     
             btnCollapse.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                mainContent.classList.toggle('collapsed');
-                btnCollapse.innerHTML = sidebar.classList.contains('collapsed') ? iconHamburger : iconX;
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('mobile-open');
+                    document.getElementById('mobileOverlay').classList.remove('active');
+                } else {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('collapsed');
+                    btnCollapse.innerHTML = sidebar.classList.contains('collapsed') ? iconHamburger : iconX;
+                }
             });
+
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+            
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    sidebar.classList.add('mobile-open');
+                    mobileOverlay.classList.add('active');
+                });
+            }
+            if (mobileOverlay) {
+                mobileOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('mobile-open');
+                    mobileOverlay.classList.remove('active');
+                });
+            }
         });
 
         function updateTopbarClock() {
