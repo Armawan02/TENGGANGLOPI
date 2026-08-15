@@ -759,9 +759,23 @@
                     nodes.forEach(node => {
                         fleetNodesData[node.id] = node; // Save real data globally
                         
+                        let isOffline = false;
+                        if (node.heartbeat) {
+                            let nowUnix = Math.floor(Date.now() / 1000);
+                            if (nowUnix - node.heartbeat > 30) {
+                                isOffline = true;
+                            }
+                        }
+                        
                         const isWarning = node.buzzerSignal === 'ON' || (node.waterLevel && node.waterLevel < 20);
-                        const statusColor = isWarning ? 'var(--warning)' : 'var(--success)';
-                        const statusText = isWarning ? 'Warning' : 'Online';
+                        let statusColor = isWarning ? 'var(--warning)' : 'var(--success)';
+                        let statusText = isWarning ? 'Warning' : 'Online';
+                        
+                        if (isOffline) {
+                            statusColor = 'var(--text-muted)';
+                            statusText = 'Offline';
+                        }
+                        
                         const aiInfo = isWarning ? 'Al: Butuh Perhatian' : 'Al: Cuaca Aman';
                         
                         const tr = document.createElement('tr');
@@ -807,6 +821,15 @@
         const node = fleetNodesData[nodeId];
         activeNodeId = nodeId;
 
+        // Check Offline Status
+        let isOffline = false;
+        if (node.heartbeat) {
+            let nowUnix = Math.floor(Date.now() / 1000);
+            if (nowUnix - node.heartbeat > 30) {
+                isOffline = true;
+            }
+        }
+
         // 1. MPU6050
         let roll = node.gyroscope?.x ?? 0;
         let pitch = node.gyroscope?.y ?? 0;
@@ -827,6 +850,12 @@
         if (Math.abs(roll) >= 90) { mpuStatus = 'TERBALIK'; mpuColor = 'var(--danger)'; document.getElementById('mpuGaugeVal').classList.add('status-blink-red'); }
         else if (Math.abs(roll) >= 60) { mpuStatus = 'WASPADA'; mpuColor = 'var(--warning)'; }
         
+        if (isOffline) {
+            mpuStatus = 'Sensor Mati (Offline)';
+            mpuColor = 'var(--text-muted)';
+            document.getElementById('mpuGaugeVal').classList.remove('status-blink-red');
+        }
+        
         document.getElementById('mpuGaugeVal').style.stroke = mpuColor;
         document.getElementById('status-mpu').innerText = mpuStatus;
         document.getElementById('status-mpu').style.color = mpuColor;
@@ -844,6 +873,12 @@
         let waterColor = 'var(--success)';
         if (waterDist < 15) { waterStatus = 'TENGGELAM (KRITIS)'; waterColor = 'var(--danger)'; waterBar.classList.add('bahaya'); }
         else if (waterDist < 50) { waterStatus = 'BOCOR (AIR MASUK)'; waterColor = 'var(--warning)'; waterBar.classList.add('waspada'); }
+        
+        if (isOffline) {
+            waterStatus = 'Sensor Mati (Offline)';
+            waterColor = 'var(--text-muted)';
+            waterBar.classList.remove('bahaya', 'waspada');
+        }
         
         document.getElementById('status-ultra').innerText = waterStatus;
         document.getElementById('status-ultra').style.color = waterColor;
@@ -865,8 +900,17 @@
         if (temp > 33) { aiStatus = 'CUACA BAHAYA'; aiColor = 'var(--danger)'; aiBadge.classList.add('bahaya'); }
         else if (temp > 29) { aiStatus = 'CUACA WASPADA'; aiColor = 'var(--warning)'; aiBadge.classList.add('waspada'); }
         
+        if (isOffline) {
+            aiStatus = '-';
+            document.getElementById('status-bme').innerText = 'Sensor Mati (Offline)';
+            document.getElementById('status-bme').style.color = 'var(--text-muted)';
+            aiBadge.classList.remove('bahaya', 'waspada');
+        } else {
+            document.getElementById('status-bme').innerText = 'Model Edge AI: Aktif';
+            document.getElementById('status-bme').style.color = 'var(--success)';
+        }
+        
         document.getElementById('bmeAiText').innerText = aiStatus;
-        document.getElementById('status-bme').innerText = 'Model Edge AI: Aktif';
 
         // 4. Baterai (Sementara kita asumsikan 100% jika ESP tidak mengirim baterai)
         let batt = node.battery ?? 100;
@@ -874,20 +918,39 @@
         let battBar = document.getElementById('val-batt-bar');
         battBar.style.width = batt + '%';
         battBar.style.background = (batt > 50) ? 'var(--success)' : ((batt > 20) ? 'var(--warning)' : 'var(--danger)');
-        document.getElementById('status-batt').innerText = (batt > 20) ? 'Baterai Normal' : 'Baterai Lemah';
-        document.getElementById('status-batt').style.color = (batt > 20) ? 'var(--success)' : 'var(--danger)';
-
-        // 5. Lora Signal
-        let rssi = node.rssi ?? -85; // mengambil rssi langsung dari gateway
-        document.getElementById('loraStatusText').innerText = rssi + ' dBm';
-        document.getElementById('loraBar1').classList.add('active');
-        document.getElementById('loraBar2').classList.toggle('active', rssi > -105);
-        document.getElementById('loraBar3').classList.toggle('active', rssi > -95);
-        document.getElementById('loraBar4').classList.toggle('active', rssi > -85);
         
-        document.getElementById('val-lora').innerText = rssi;
-        document.getElementById('status-lora').innerText = 'Terkoneksi';
-        document.getElementById('status-lora').style.color = 'var(--success)';
+        if (isOffline) {
+            document.getElementById('status-batt').innerText = 'Sensor Mati (Offline)';
+            document.getElementById('status-batt').style.color = 'var(--text-muted)';
+        } else {
+            document.getElementById('status-batt').innerText = (batt > 20) ? 'Baterai Normal' : 'Baterai Lemah';
+            document.getElementById('status-batt').style.color = (batt > 20) ? 'var(--success)' : 'var(--danger)';
+        }
+
+        // 5. Lora Signal & Status Koneksi
+        let rssi = node.rssi ?? -85; // mengambil rssi langsung dari gateway
+        
+        if (isOffline) {
+            document.getElementById('loraStatusText').innerText = 'Offline';
+            document.getElementById('loraBar1').classList.remove('active');
+            document.getElementById('loraBar2').classList.remove('active');
+            document.getElementById('loraBar3').classList.remove('active');
+            document.getElementById('loraBar4').classList.remove('active');
+            
+            document.getElementById('val-lora').innerText = '- -';
+            document.getElementById('status-lora').innerText = 'Terputus';
+            document.getElementById('status-lora').style.color = 'var(--danger)';
+        } else {
+            document.getElementById('loraStatusText').innerText = rssi + ' dBm';
+            document.getElementById('loraBar1').classList.add('active');
+            document.getElementById('loraBar2').classList.toggle('active', rssi > -105);
+            document.getElementById('loraBar3').classList.toggle('active', rssi > -95);
+            document.getElementById('loraBar4').classList.toggle('active', rssi > -85);
+            
+            document.getElementById('val-lora').innerText = rssi;
+            document.getElementById('status-lora').innerText = 'Terkoneksi';
+            document.getElementById('status-lora').style.color = 'var(--success)';
+        }
     }
 
     function triggerBuzzer() {

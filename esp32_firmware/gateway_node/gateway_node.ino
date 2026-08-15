@@ -72,6 +72,7 @@ void loop() {
       
       // Memulai koneksi HTTP dengan SSL Client
       http.begin(client, serverName);
+      http.setTimeout(15000); // Set timeout 15 detik untuk antisipasi cold-start server Vercel
       
       // Memberitahu server bahwa data yang dikirim adalah JSON
       http.addHeader("Content-Type", "application/json");

@@ -151,8 +151,21 @@
                         let dataEl = document.getElementById('node1_data');
                         
                         if(statusEl && dataEl) {
-                            statusEl.innerHTML = 'Status: Terhubung 🟢';
-                            statusEl.style.color = '#10b981';
+                            let isOffline = false;
+                            if (data.heartbeat) {
+                                let nowUnix = Math.floor(Date.now() / 1000);
+                                if (nowUnix - data.heartbeat > 30) {
+                                    isOffline = true;
+                                }
+                            }
+                            
+                            if (isOffline) {
+                                statusEl.innerHTML = 'Status: Terputus 🔴';
+                                statusEl.style.color = '#ef4444';
+                            } else {
+                                statusEl.innerHTML = 'Status: Terhubung 🟢';
+                                statusEl.style.color = '#10b981';
+                            }
                             
                             let latText = data.coordinates ? data.coordinates.lat : '-';
                             let lngText = data.coordinates ? data.coordinates.lng : '-';
