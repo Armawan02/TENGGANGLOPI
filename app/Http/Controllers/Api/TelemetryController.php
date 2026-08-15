@@ -60,6 +60,9 @@ class TelemetryController extends Controller
             // 4. Format Water Level
             $nodeData['waterLevel'] = (float) $request->input('JarakAir', $nodeData['waterLevel'] ?? 0);
             
+            // 5. LoRa RSSI
+            $nodeData['rssi'] = (int) $request->input('Rssi', $nodeData['rssi'] ?? -85);
+            
             // Update Heartbeat (Timestamp UNIX untuk menandakan kapan terakhir online)
             $nodeData['heartbeat'] = time();
             $nodeData['updated_at'] = date('Y-m-d H:i:s');

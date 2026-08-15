@@ -157,10 +157,13 @@
                             let latText = data.coordinates ? data.coordinates.lat : '-';
                             let lngText = data.coordinates ? data.coordinates.lng : '-';
                             
+                            // Konversi UNIX timestamp (detik) ke format jam yang mudah dibaca
+                            let lastSeenTime = data.heartbeat ? new Date(data.heartbeat * 1000).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : '-';
+                            
                             dataEl.innerHTML = `
                                 📍 GPS: ${latText}, ${lngText}<br>
                                 💧 Air: ${data.waterLevel} cm<br>
-                                ❤️ BPM: ${data.heartbeat}<br>
+                                🕒 Update: ${lastSeenTime}<br>
                                 🧭 Gyro X: ${data.gyroscope.x} | Y: ${data.gyroscope.y} | Z: ${data.gyroscope.z}<br>
                                 🔔 Buzzer: ${data.buzzerSignal}
                             `;

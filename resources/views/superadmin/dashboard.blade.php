@@ -878,7 +878,7 @@
         document.getElementById('status-batt').style.color = (batt > 20) ? 'var(--success)' : 'var(--danger)';
 
         // 5. Lora Signal
-        let rssi = node.heartbeat ?? -85; // asumsikan heartbeat menyimpan rssi
+        let rssi = node.rssi ?? -85; // mengambil rssi langsung dari gateway
         document.getElementById('loraStatusText').innerText = rssi + ' dBm';
         document.getElementById('loraBar1').classList.add('active');
         document.getElementById('loraBar2').classList.toggle('active', rssi > -105);

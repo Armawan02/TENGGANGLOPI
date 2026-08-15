@@ -47,6 +47,7 @@ class FirebaseApiController extends Controller
                         // Memasukkan data sensor real-time
                         'waterLevel' => $fd['waterLevel'] ?? null,
                         'heartbeat' => $fd['heartbeat'] ?? null,
+                        'rssi' => $fd['rssi'] ?? null,
                         'gyroscope' => $fd['gyroscope'] ?? null,
                         'bme280' => $fd['bme280'] ?? null,
                         'coordinates' => $fd['coordinates'] ?? null,
