@@ -41,7 +41,7 @@ class FirebaseApiController extends Controller
                     
                     $activeFleet[] = [
                         'id' => $nodeId, // Dashboard JS menggunakan 'id'
-                        'vesselName' => !empty($fd['name']) ? $fd['name'] : (!empty($fish['boat_name']) ? $fish['boat_name'] : 'Kapal Tanpa Nama'),
+                        'vesselName' => !empty($fish['boat_name']) ? $fish['boat_name'] : 'Kapal Tanpa Nama',
                         'fishermanName' => !empty($fish['name']) ? $fish['name'] : 'Tidak Diketahui',
                         'buzzerSignal' => $fd['buzzerSignal'] ?? 'OFF',
                         // Memasukkan data sensor real-time
