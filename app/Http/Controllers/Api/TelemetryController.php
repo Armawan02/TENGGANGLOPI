@@ -3,16 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Alert;
-use App\Models\Node;
-use App\Models\Telemetry;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class TelemetryController extends Controller
 {
+    protected $firebaseService;
+
+    public function __construct(FirebaseService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
+
     /**
-     * Handle incoming telemetry data from LoRaWAN gateway.
+     * Handle incoming telemetry data from LoRaWAN gateway and save to Firebase.
      */
     public function store(Request $request)
     {
@@ -31,37 +36,53 @@ class TelemetryController extends Controller
                 'weather_condition' => 'nullable|string',
             ]);
 
-            // Find or create the node by mac_address
-            $node = Node::firstOrCreate(
-                ['mac_address' => $validated['mac_address']],
-                ['name' => 'Unknown Node ' . substr($validated['mac_address'], -4)]
-            );
+            // Untuk Vercel/Firebase, gunakan MAC Address yang disanitasi sebagai Document ID (misal NODE_01 atau C8_F0_9E_...)
+            // Anda juga bisa memaksanya menjadi "NODE_01" jika perahu Anda hanya 1:
+            // $docId = "NODE_01";
+            $docId = str_replace(':', '_', $validated['mac_address']);
 
-            // Create Telemetry Record
-            $telemetry = Telemetry::create([
-                'node_id'           => $node->id,
-                'temperature'       => $validated['temperature'] ?? null,
-                'humidity'          => $validated['humidity'] ?? null,
-                'pressure'          => $validated['pressure'] ?? null,
-                'roll'              => $validated['roll'] ?? null,
-                'pitch'             => $validated['pitch'] ?? null,
-                'latitude'          => $validated['latitude'] ?? null,
-                'longitude'         => $validated['longitude'] ?? null,
-                'water_level'       => $validated['water_level'] ?? null,
-                'weather_condition' => $validated['weather_condition'] ?? null,
-            ]);
+            // Mengambil dokumen yang ada dari fleet (atau buat array kosong jika belum ada)
+            $nodeData = $this->firebaseService->getDocument('fleet', $docId);
+            if (!$nodeData) {
+                $nodeData = []; // Inisialisasi jika node baru
+            }
 
-            // Simple Alert Logic for the Prototype
-            $this->checkAnomalies($node, $telemetry);
+            // Update struktur data sesuai format FirebaseTrackingController Anda (gyroscope, waterLevel, heartbeat)
+            $nodeData['temperature'] = $validated['temperature'] ?? ($nodeData['temperature'] ?? 0);
+            $nodeData['humidity'] = $validated['humidity'] ?? ($nodeData['humidity'] ?? 0);
+            $nodeData['pressure'] = $validated['pressure'] ?? ($nodeData['pressure'] ?? 0);
+            $nodeData['latitude'] = $validated['latitude'] ?? ($nodeData['latitude'] ?? 0);
+            $nodeData['longitude'] = $validated['longitude'] ?? ($nodeData['longitude'] ?? 0);
+            $nodeData['weather_condition'] = $validated['weather_condition'] ?? ($nodeData['weather_condition'] ?? 'unknown');
+            
+            // Menggabungkan Roll dan Pitch ke Gyroscope sesuai format aplikasi Anda
+            $nodeData['gyroscope'] = [
+                'x' => $validated['roll'] ?? 0,
+                'y' => $validated['pitch'] ?? 0,
+                'z' => 0
+            ];
+            
+            // Format Water Level
+            $nodeData['waterLevel'] = $validated['water_level'] ?? ($nodeData['waterLevel'] ?? 0);
+            
+            // Update Heartbeat (Timestamp UNIX untuk menandakan kapan terakhir online)
+            $nodeData['heartbeat'] = time();
+            $nodeData['updated_at'] = date('Y-m-d H:i:s');
+
+            // Simpan kembali ke Firebase Firestore
+            $this->firebaseService->saveDocument('fleet', $nodeData, $docId);
+
+            // Cek Anomali
+            $this->checkAnomalies($docId, $nodeData);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Telemetry data recorded successfully',
-                'data' => $telemetry
+                'message' => 'Telemetry data recorded to Firebase successfully',
+                'data' => $nodeData
             ], 201);
             
         } catch (\Exception $e) {
-            Log::error('Error saving telemetry: ' . $e->getMessage());
+            Log::error('Error saving telemetry to Firebase: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to record telemetry data',
@@ -71,37 +92,49 @@ class TelemetryController extends Controller
     }
 
     /**
-     * Check anomalies based on sensor values and trigger alerts.
+     * Check anomalies based on sensor values and trigger alerts in Firebase.
      */
-    private function checkAnomalies(Node $node, Telemetry $telemetry)
+    private function checkAnomalies($docId, $nodeData)
     {
+        $alertType = null;
+        $alertMessage = null;
+
+        $roll = $nodeData['gyroscope']['x'] ?? 0;
+        $pitch = $nodeData['gyroscope']['y'] ?? 0;
+        $waterLevel = $nodeData['waterLevel'] ?? 0;
+
         // 1. Capsizing Check (Roll/Pitch anomaly)
-        if (abs($telemetry->roll) > 60 || abs($telemetry->pitch) > 60) {
-            Alert::create([
-                'node_id' => $node->id,
-                'type' => 'Capsizing',
-                'message' => 'Critical tilt detected! Potential capsizing. Roll: ' . $telemetry->roll . ', Pitch: ' . $telemetry->pitch,
-            ]);
+        if (abs($roll) > 60 || abs($pitch) > 60) {
+            $alertType = 'Capsizing';
+            $alertMessage = 'Critical tilt detected! Potential capsizing. Roll: ' . $roll . ', Pitch: ' . $pitch;
         }
-
         // 2. Leak Check (Water level rising in hull)
-        // Assume HC-SR04 measures distance from top to water. If distance is very small, water is high.
-        // Or if water_level > certain threshold. Let's assume water_level > 50 means leak.
-        if ($telemetry->water_level > 50) {
-            Alert::create([
-                'node_id' => $node->id,
-                'type' => 'Leak',
-                'message' => 'High water level detected in hull (' . $telemetry->water_level . ' cm). Possible leak.',
-            ]);
+        elseif ($waterLevel > 50) {
+            $alertType = 'Leak';
+            $alertMessage = 'High water level detected in hull (' . $waterLevel . ' cm). Possible leak.';
+        }
+        // 3. Severe Weather Check
+        elseif (strtolower($nodeData['weather_condition'] ?? '') === 'bad storm') {
+            $alertType = 'Weather Warning';
+            $alertMessage = 'Edge-AI detected bad storm conditions.';
         }
 
-        // 3. Severe Weather SOS Check
-        if (strtolower($telemetry->weather_condition) === 'bad storm') {
-            Alert::create([
-                'node_id' => $node->id,
-                'type' => 'Weather Warning',
-                'message' => 'Edge-AI detected bad storm conditions.',
-            ]);
+        if ($alertType) {
+            // Log peringatan ke Firebase koleksi history_logs
+            $logData = [
+                'node_id' => $docId,
+                'type' => $alertType,
+                'message' => $alertMessage,
+                'is_resolved' => false,
+                'timestamp' => time()
+            ];
+            
+            // Simpan tanpa ID (parameter ke-3 dikosongkan) agar Firebase membuatkan UUID
+            $this->firebaseService->saveDocument('history_logs', $logData);
+            
+            // Nyalakan alarm / buzzer di perahu melalui data fleet (agar dibaca oleh sistem Anda)
+            $nodeData['buzzerSignal'] = 'ON';
+            $this->firebaseService->saveDocument('fleet', $nodeData, $docId);
         }
     }
 }
