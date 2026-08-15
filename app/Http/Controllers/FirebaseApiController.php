@@ -25,31 +25,31 @@ class FirebaseApiController extends Controller
             // Ambil data real-time sensor dari collection fleet
             $fleetData = $this->firebaseService->getCollection('fleet');
             
-            // Buat map (dictionary) untuk akses data fleet lebih cepat berdasarkan ID
-            $fleetMap = [];
-            foreach ($fleetData as $fd) {
-                if (isset($fd['id'])) {
-                    $fleetMap[$fd['id']] = $fd;
+            // Buat map (dictionary) untuk akses data fishermen berdasarkan node_id
+            $fishermenMap = [];
+            foreach ($fishermen as $f) {
+                if (!empty($f['node_id'])) {
+                    $fishermenMap[$f['node_id']] = $f;
                 }
             }
             
             $activeFleet = [];
-            foreach ($fishermen as $f) {
-                if (!empty($f['node_id'])) {
-                    $nodeId = $f['node_id'];
-                    $sensor = $fleetMap[$nodeId] ?? [];
+            foreach ($fleetData as $fd) {
+                if (isset($fd['id'])) {
+                    $nodeId = $fd['id'];
+                    $fish = $fishermenMap[$nodeId] ?? [];
                     
                     $activeFleet[] = [
                         'id' => $nodeId, // Dashboard JS menggunakan 'id'
-                        'vesselName' => !empty($f['boat_name']) ? $f['boat_name'] : 'Kapal Tanpa Nama',
-                        'fishermanName' => !empty($f['name']) ? $f['name'] : 'Tidak Diketahui',
-                        'buzzerSignal' => $sensor['buzzerSignal'] ?? 'OFF',
+                        'vesselName' => !empty($fd['name']) ? $fd['name'] : (!empty($fish['boat_name']) ? $fish['boat_name'] : 'Kapal Tanpa Nama'),
+                        'fishermanName' => !empty($fish['name']) ? $fish['name'] : 'Tidak Diketahui',
+                        'buzzerSignal' => $fd['buzzerSignal'] ?? 'OFF',
                         // Memasukkan data sensor real-time
-                        'waterLevel' => $sensor['waterLevel'] ?? null,
-                        'heartbeat' => $sensor['heartbeat'] ?? null,
-                        'gyroscope' => $sensor['gyroscope'] ?? null,
-                        'bme280' => $sensor['bme280'] ?? null,
-                        'coordinates' => $sensor['coordinates'] ?? null,
+                        'waterLevel' => $fd['waterLevel'] ?? null,
+                        'heartbeat' => $fd['heartbeat'] ?? null,
+                        'gyroscope' => $fd['gyroscope'] ?? null,
+                        'bme280' => $fd['bme280'] ?? null,
+                        'coordinates' => $fd['coordinates'] ?? null,
                     ];
                 }
             }
@@ -59,6 +59,7 @@ class FirebaseApiController extends Controller
                 'data' => $activeFleet
             ]);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('getFleetList Error: ' . $e->getMessage());
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
