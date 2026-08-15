@@ -22,24 +22,11 @@ class TelemetryController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validate incoming payload
-            $validated = $request->validate([
-                'mac_address'       => 'required|string',
-                'temperature'       => 'nullable|numeric',
-                'humidity'          => 'nullable|numeric',
-                'pressure'          => 'nullable|numeric',
-                'roll'              => 'nullable|numeric',
-                'pitch'             => 'nullable|numeric',
-                'latitude'          => 'nullable|numeric',
-                'longitude'         => 'nullable|numeric',
-                'water_level'       => 'nullable|numeric',
-                'weather_condition' => 'nullable|string',
-            ]);
-
-            // Untuk Vercel/Firebase, gunakan MAC Address yang disanitasi sebagai Document ID (misal NODE_01 atau C8_F0_9E_...)
-            // Anda juga bisa memaksanya menjadi "NODE_01" jika perahu Anda hanya 1:
-            // $docId = "NODE_01";
-            $docId = str_replace(':', '_', $validated['mac_address']);
+            // Karena data dari ESP Perahu menggunakan format bahasa Indonesia:
+            // {"Suhu":29.18, "Kelembapan":75.74, "Tekanan":1010.65, "Kemiringan":40, "JarakAir":379.7, "Lat":-3.539471, "Lng":118.989296}
+            
+            // Gunakan ID default karena ESP tidak mengirimkan MAC Address di serial monitor
+            $docId = "NODE_01";
 
             // Mengambil dokumen yang ada dari fleet (atau buat array kosong jika belum ada)
             $nodeData = $this->firebaseService->getDocument('fleet', $docId);
@@ -47,23 +34,24 @@ class TelemetryController extends Controller
                 $nodeData = []; // Inisialisasi jika node baru
             }
 
-            // Update struktur data sesuai format FirebaseTrackingController Anda (gyroscope, waterLevel, heartbeat)
-            $nodeData['temperature'] = $validated['temperature'] ?? ($nodeData['temperature'] ?? 0);
-            $nodeData['humidity'] = $validated['humidity'] ?? ($nodeData['humidity'] ?? 0);
-            $nodeData['pressure'] = $validated['pressure'] ?? ($nodeData['pressure'] ?? 0);
-            $nodeData['latitude'] = $validated['latitude'] ?? ($nodeData['latitude'] ?? 0);
-            $nodeData['longitude'] = $validated['longitude'] ?? ($nodeData['longitude'] ?? 0);
-            $nodeData['weather_condition'] = $validated['weather_condition'] ?? ($nodeData['weather_condition'] ?? 'unknown');
+            // Map data JSON berbahasa Indonesia ke variabel Firebase
+            $nodeData['temperature'] = $request->input('Suhu', $nodeData['temperature'] ?? 0);
+            $nodeData['humidity'] = $request->input('Kelembapan', $nodeData['humidity'] ?? 0);
+            $nodeData['pressure'] = $request->input('Tekanan', $nodeData['pressure'] ?? 0);
+            $nodeData['latitude'] = $request->input('Lat', $nodeData['latitude'] ?? 0);
+            $nodeData['longitude'] = $request->input('Lng', $nodeData['longitude'] ?? 0);
+            $nodeData['weather_condition'] = 'unknown';
             
-            // Menggabungkan Roll dan Pitch ke Gyroscope sesuai format aplikasi Anda
+            // Menggabungkan "Kemiringan" ke Gyroscope sesuai format aplikasi Anda
+            $kemiringan = $request->input('Kemiringan', 0);
             $nodeData['gyroscope'] = [
-                'x' => $validated['roll'] ?? 0,
-                'y' => $validated['pitch'] ?? 0,
+                'x' => $kemiringan,
+                'y' => $kemiringan,
                 'z' => 0
             ];
             
             // Format Water Level
-            $nodeData['waterLevel'] = $validated['water_level'] ?? ($nodeData['waterLevel'] ?? 0);
+            $nodeData['waterLevel'] = $request->input('JarakAir', $nodeData['waterLevel'] ?? 0);
             
             // Update Heartbeat (Timestamp UNIX untuk menandakan kapan terakhir online)
             $nodeData['heartbeat'] = time();
