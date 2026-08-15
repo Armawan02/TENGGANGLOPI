@@ -1,6 +1,7 @@
 #include <SPI.h>
 #include <LoRa.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 
 // Definisi PIN LoRa (Sesuaikan jika Anda menggunakan pin yang berbeda)
@@ -64,10 +65,13 @@ void loop() {
 
     // Kirim data ke Server Laravel menggunakan HTTP POST
     if(WiFi.status() == WL_CONNECTED){
+      WiFiClientSecure client;
+      client.setInsecure(); // Bypass sertifikat SSL untuk Vercel (karena menggunakan HTTPS)
+      
       HTTPClient http;
       
-      // Memulai koneksi HTTP
-      http.begin(serverName);
+      // Memulai koneksi HTTP dengan SSL Client
+      http.begin(client, serverName);
       
       // Memberitahu server bahwa data yang dikirim adalah JSON
       http.addHeader("Content-Type", "application/json");
