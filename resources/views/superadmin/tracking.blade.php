@@ -129,80 +129,73 @@
             iconAnchor: [14, 14]
         });
 
-        var markerNode1 = L.marker([-3.580, 118.930], {icon: shipIcon}).addTo(map)
-            .bindTooltip('<div style="font-weight:700; color:#64748b; font-size:10px;">NODE_01</div><div style="font-weight:700; color:#1e293b; font-size:12px;">Salili Mandar</div><div id="node1_status" style="color:#64748b; font-size:11px; font-weight:600;">Memuat koneksi...</div><div id="node1_data" style="font-size:10px; color:#475569; margin-top:3px; line-height:1.4;"></div>', {permanent: true, direction: 'right', offset: [15, 0], className: 'ship-tooltip'});
-        
-        L.marker([-3.560, 118.900], {icon: shipIcon}).addTo(map)
-            .bindTooltip('<div style="font-weight:700; color:#64748b; font-size:10px;">NODE_02</div><div style="font-weight:700; color:#1e293b; font-size:12px;">Bintang Laut</div><div style="color:#10b981; font-size:11px; font-weight:600;">Status: Online</div>', {permanent: true, direction: 'right', offset: [15, 0], className: 'ship-tooltip'})
-            .bindPopup('<strong style="color:#000;">Bintang Laut</strong><br><span style="color:#22c55e;">Status: Online</span>');
-        
-        L.marker([-3.600, 118.950], {icon: shipIcon}).addTo(map)
-            .bindTooltip('<div style="font-weight:700; color:#64748b; font-size:10px;">NODE_03</div><div style="font-weight:700; color:#1e293b; font-size:12px;">Harapan Jaya</div><div style="color:#10b981; font-size:11px; font-weight:600;">Status: Online</div>', {permanent: true, direction: 'right', offset: [15, 0], className: 'ship-tooltip'})
-            .bindPopup('<strong style="color:#000;">Harapan Jaya</strong><br><span style="color:#22c55e;">Status: Online</span>');
+        // Simpan referensi marker yang aktif di peta
+        let fleetMarkers = {};
 
-        // ==== LOGIKA PENGAMBILAN DATA FIRESTORE REAL-TIME ====
-        function fetchNode1Data() {
-            fetch("{{ route('api.fleet.node01') }}")
+        function updateFleetMap() {
+            fetch("{{ route('api.fleet.all') }}")
                 .then(response => response.json())
                 .then(res => {
                     if(res.status === 'success') {
-                        let data = res.data;
-                        let statusEl = document.getElementById('node1_status');
-                        let dataEl = document.getElementById('node1_data');
+                        let nodes = res.data;
                         
-                        if(statusEl && dataEl) {
+                        nodes.forEach(node => {
                             let isOffline = false;
-                            if (data.heartbeat) {
+                            if (node.heartbeat) {
                                 let nowUnix = Math.floor(Date.now() / 1000);
-                                if (nowUnix - data.heartbeat > 30) {
+                                if (nowUnix - node.heartbeat > 30) {
                                     isOffline = true;
                                 }
                             }
                             
-                            if (isOffline) {
-                                statusEl.innerHTML = 'Status: Terputus 🔴';
-                                statusEl.style.color = '#ef4444';
-                            } else {
-                                statusEl.innerHTML = 'Status: Terhubung 🟢';
-                                statusEl.style.color = '#10b981';
-                            }
+                            let statusText = isOffline ? 'Status: Terputus 🔴' : 'Status: Terhubung 🟢';
+                            let statusColor = isOffline ? '#ef4444' : '#10b981';
                             
-                            let latText = data.coordinates ? data.coordinates.lat : '-';
-                            let lngText = data.coordinates ? data.coordinates.lng : '-';
+                            let latText = (node.coordinates && node.coordinates.lat !== 0) ? node.coordinates.lat : 'Belum Ada';
+                            let lngText = (node.coordinates && node.coordinates.lng !== 0) ? node.coordinates.lng : 'Belum Ada';
                             
-                            // Konversi UNIX timestamp (detik) ke format jam yang mudah dibaca
-                            let lastSeenTime = data.heartbeat ? new Date(data.heartbeat * 1000).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : '-';
+                            let lastSeenTime = node.heartbeat ? new Date(node.heartbeat * 1000).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : '-';
                             
-                            dataEl.innerHTML = `
-                                📍 GPS: ${latText}, ${lngText}<br>
-                                💧 Air: ${data.waterLevel} cm<br>
-                                🕒 Update: ${lastSeenTime}<br>
-                                🧭 Gyro X: ${data.gyroscope.x} | Y: ${data.gyroscope.y} | Z: ${data.gyroscope.z}<br>
-                                🔔 Buzzer: ${data.buzzerSignal}
+                            let mpuX = node.gyroscope ? node.gyroscope.x : 0;
+                            let mpuY = node.gyroscope ? node.gyroscope.y : 0;
+                            let mpuZ = node.gyroscope ? node.gyroscope.z : 0;
+                            
+                            let tooltipContent = `
+                                <div style="font-weight:700; color:#64748b; font-size:10px;">${node.id}</div>
+                                <div style="font-weight:700; color:#1e293b; font-size:12px;">${node.vesselName}</div>
+                                <div style="color:${statusColor}; font-size:11px; font-weight:600;">${statusText}</div>
+                                <div style="font-size:10px; color:#475569; margin-top:3px; line-height:1.4;">
+                                    📍 GPS: ${latText}, ${lngText}<br>
+                                    💧 Air: ${node.waterLevel ?? 0} cm<br>
+                                    🕒 Update: ${lastSeenTime}<br>
+                                    🧭 Gyro X: ${mpuX} | Y: ${mpuY} | Z: ${mpuZ}<br>
+                                    🔔 Buzzer: ${node.buzzerSignal ?? 'OFF'}
+                                </div>
                             `;
-                        }
-                        
-                        // Update posisi GPS pada Marker
-                        if(data.coordinates && data.coordinates.lat && data.coordinates.lng) {
-                            let newLatLng = new L.LatLng(data.coordinates.lat, data.coordinates.lng);
-                            markerNode1.setLatLng(newLatLng);
-                            // Opsional: pusatkan peta ke kapal
-                            // map.panTo(newLatLng);
-                        }
+
+                            // Jika koordinat GPS valid dan bukan 0,0
+                            if (node.coordinates && node.coordinates.lat !== 0 && node.coordinates.lng !== 0) {
+                                let newLatLng = new L.LatLng(node.coordinates.lat, node.coordinates.lng);
+                                
+                                // Jika marker belum ada, buat baru
+                                if (!fleetMarkers[node.id]) {
+                                    fleetMarkers[node.id] = L.marker(newLatLng, {icon: shipIcon}).addTo(map)
+                                        .bindTooltip(tooltipContent, {permanent: true, direction: 'right', offset: [15, 0], className: 'ship-tooltip'});
+                                } else {
+                                    // Jika sudah ada, update posisi dan tooltip
+                                    fleetMarkers[node.id].setLatLng(newLatLng);
+                                    fleetMarkers[node.id].setTooltipContent(tooltipContent);
+                                }
+                            }
+                        });
                     }
                 })
-                .catch(err => {
-                    let statusEl = document.getElementById('node1_status');
-                    if(statusEl) {
-                        statusEl.innerHTML = 'Status: Terputus 🔴';
-                        statusEl.style.color = '#ef4444';
-                    }
-                });
+                .catch(console.error);
         }
         
         // Panggil pertama kali dan ulang setiap 3 detik
-        fetchNode1Data();
-        setInterval(fetchNode1Data, 3000);
+        updateFleetMap();
+        setInterval(updateFleetMap, 3000);
     });
 </script>
 @endsection
