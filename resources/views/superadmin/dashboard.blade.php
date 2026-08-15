@@ -848,11 +848,15 @@
         document.getElementById('status-ultra').innerText = waterStatus;
         document.getElementById('status-ultra').style.color = waterColor;
 
-        // 3. BME280 (Random / Optional if not in real data)
-        let temp = Math.floor(Math.random() * (36 - 22) + 22);
+        // 3. BME280 (Real Data dari Firebase)
+        let temp = node.bme280?.temperature ?? 0;
+        let rh = node.bme280?.humidity ?? 0;
+        let press = node.bme280?.pressure ?? 0;
+        
         document.getElementById('val-temp').innerHTML = temp + '&deg;C';
-        document.getElementById('val-rh').innerHTML = Math.floor(Math.random() * 40 + 60) + '%';
-        document.getElementById('val-press').innerHTML = Math.floor(Math.random() * 30 + 1000) + ' hPa';
+        document.getElementById('val-rh').innerHTML = rh + '%';
+        document.getElementById('val-press').innerHTML = press + ' hPa';
+        
         let aiBadge = document.getElementById('bmeAiBadge');
         aiBadge.classList.remove('waspada', 'bahaya');
         
@@ -864,8 +868,8 @@
         document.getElementById('bmeAiText').innerText = aiStatus;
         document.getElementById('status-bme').innerText = 'Model Edge AI: Aktif';
 
-        // 4. Baterai (Random / Optional)
-        let batt = Math.floor(Math.random() * (100 - 40) + 40);
+        // 4. Baterai (Sementara kita asumsikan 100% jika ESP tidak mengirim baterai)
+        let batt = node.battery ?? 100;
         document.getElementById('val-batt').innerText = batt + ' %';
         let battBar = document.getElementById('val-batt-bar');
         battBar.style.width = batt + '%';

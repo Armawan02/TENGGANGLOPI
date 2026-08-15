@@ -22,15 +22,34 @@ class FirebaseApiController extends Controller
         try {
             // Ambil dari collection fishermen, filter yang memiliki node_id
             $fishermen = $this->firebaseService->getCollection('fishermen');
+            // Ambil data real-time sensor dari collection fleet
+            $fleetData = $this->firebaseService->getCollection('fleet');
+            
+            // Buat map (dictionary) untuk akses data fleet lebih cepat berdasarkan ID
+            $fleetMap = [];
+            foreach ($fleetData as $fd) {
+                if (isset($fd['id'])) {
+                    $fleetMap[$fd['id']] = $fd;
+                }
+            }
             
             $activeFleet = [];
             foreach ($fishermen as $f) {
                 if (!empty($f['node_id'])) {
+                    $nodeId = $f['node_id'];
+                    $sensor = $fleetMap[$nodeId] ?? [];
+                    
                     $activeFleet[] = [
-                        'id' => $f['node_id'], // Dashboard JS menggunakan 'id' sebagai referensi telemetry (e.g. node-01)
+                        'id' => $nodeId, // Dashboard JS menggunakan 'id'
                         'vesselName' => !empty($f['boat_name']) ? $f['boat_name'] : 'Kapal Tanpa Nama',
                         'fishermanName' => !empty($f['name']) ? $f['name'] : 'Tidak Diketahui',
-                        'buzzerSignal' => $f['buzzerSignal'] ?? 'OFF', // Default
+                        'buzzerSignal' => $sensor['buzzerSignal'] ?? 'OFF',
+                        // Memasukkan data sensor real-time
+                        'waterLevel' => $sensor['waterLevel'] ?? null,
+                        'heartbeat' => $sensor['heartbeat'] ?? null,
+                        'gyroscope' => $sensor['gyroscope'] ?? null,
+                        'bme280' => $sensor['bme280'] ?? null,
+                        'coordinates' => $sensor['coordinates'] ?? null,
                     ];
                 }
             }
