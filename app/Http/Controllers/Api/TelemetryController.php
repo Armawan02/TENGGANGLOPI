@@ -34,24 +34,31 @@ class TelemetryController extends Controller
                 $nodeData = []; // Inisialisasi jika node baru
             }
 
-            // Map data JSON berbahasa Indonesia ke variabel Firebase
-            $nodeData['temperature'] = $request->input('Suhu', $nodeData['temperature'] ?? 0);
-            $nodeData['humidity'] = $request->input('Kelembapan', $nodeData['humidity'] ?? 0);
-            $nodeData['pressure'] = $request->input('Tekanan', $nodeData['pressure'] ?? 0);
-            $nodeData['latitude'] = $request->input('Lat', $nodeData['latitude'] ?? 0);
-            $nodeData['longitude'] = $request->input('Lng', $nodeData['longitude'] ?? 0);
-            $nodeData['weather_condition'] = 'unknown';
+            // Map data JSON berbahasa Indonesia ke variabel Firebase sesuai struktur bersarang (Nested)
             
-            // Menggabungkan "Kemiringan" ke Gyroscope sesuai format aplikasi Anda
-            $kemiringan = $request->input('Kemiringan', 0);
+            // 1. Sensor BME280 (Suhu, Kelembapan, Tekanan)
+            $nodeData['bme280'] = [
+                'temperature' => (float) $request->input('Suhu', $nodeData['bme280']['temperature'] ?? 0),
+                'humidity'    => (float) $request->input('Kelembapan', $nodeData['bme280']['humidity'] ?? 0),
+                'pressure'    => (float) $request->input('Tekanan', $nodeData['bme280']['pressure'] ?? 0)
+            ];
+            
+            // 2. GPS / Koordinat
+            $nodeData['coordinates'] = [
+                'lat' => (float) $request->input('Lat', $nodeData['coordinates']['lat'] ?? 0),
+                'lng' => (float) $request->input('Lng', $nodeData['coordinates']['lng'] ?? 0)
+            ];
+            
+            // 3. Menggabungkan "Kemiringan" ke Gyroscope sesuai format aplikasi Anda
+            $kemiringan = (float) $request->input('Kemiringan', 0);
             $nodeData['gyroscope'] = [
                 'x' => $kemiringan,
                 'y' => $kemiringan,
                 'z' => 0
             ];
             
-            // Format Water Level
-            $nodeData['waterLevel'] = $request->input('JarakAir', $nodeData['waterLevel'] ?? 0);
+            // 4. Format Water Level
+            $nodeData['waterLevel'] = (float) $request->input('JarakAir', $nodeData['waterLevel'] ?? 0);
             
             // Update Heartbeat (Timestamp UNIX untuk menandakan kapan terakhir online)
             $nodeData['heartbeat'] = time();
