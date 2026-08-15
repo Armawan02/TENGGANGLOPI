@@ -854,6 +854,10 @@
             mpuStatus = 'Sensor Mati (Offline)';
             mpuColor = 'var(--text-muted)';
             document.getElementById('mpuGaugeVal').classList.remove('status-blink-red');
+            document.getElementById('val-roll').innerHTML = '- - &deg;';
+            document.getElementById('val-pitch').innerHTML = '- - &deg;';
+            document.getElementById('val-yaw').innerHTML = '- - &deg;';
+            document.getElementById('mpuGaugeVal').style.strokeDashoffset = 283;
         }
         
         document.getElementById('mpuGaugeVal').style.stroke = mpuColor;
@@ -878,6 +882,9 @@
             waterStatus = 'Sensor Mati (Offline)';
             waterColor = 'var(--text-muted)';
             waterBar.classList.remove('bahaya', 'waspada');
+            document.getElementById('val-water').innerText = '- -';
+            waterBar.style.height = '0%';
+            document.getElementById('val-water-pct').innerText = '- - % Penuh';
         }
         
         document.getElementById('status-ultra').innerText = waterStatus;
@@ -905,6 +912,9 @@
             document.getElementById('status-bme').innerText = 'Sensor Mati (Offline)';
             document.getElementById('status-bme').style.color = 'var(--text-muted)';
             aiBadge.classList.remove('bahaya', 'waspada');
+            document.getElementById('val-temp').innerHTML = '- - &deg;C';
+            document.getElementById('val-rh').innerHTML = '- - %';
+            document.getElementById('val-press').innerHTML = '- - hPa';
         } else {
             document.getElementById('status-bme').innerText = 'Model Edge AI: Aktif';
             document.getElementById('status-bme').style.color = 'var(--success)';
@@ -922,6 +932,8 @@
         if (isOffline) {
             document.getElementById('status-batt').innerText = 'Sensor Mati (Offline)';
             document.getElementById('status-batt').style.color = 'var(--text-muted)';
+            document.getElementById('val-batt').innerText = '- - %';
+            battBar.style.width = '0%';
         } else {
             document.getElementById('status-batt').innerText = (batt > 20) ? 'Baterai Normal' : 'Baterai Lemah';
             document.getElementById('status-batt').style.color = (batt > 20) ? 'var(--success)' : 'var(--danger)';
