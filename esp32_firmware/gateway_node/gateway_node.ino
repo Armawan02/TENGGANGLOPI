@@ -15,7 +15,7 @@ const char* password = "PASSWORD_WIFI_ANDA";
 // ===== PENGATURAN API LARAVEL =====
 // Ganti IP di bawah ini dengan IP komputer tempat Laravel berjalan di jaringan lokal yang sama
 // Catatan: Anda harus menjalankan laravel dengan perintah: php artisan serve --host=0.0.0.0
-const char* serverName = "http://192.168.1.X:8000/api/telemetry"; 
+const char* serverName = "https://tengganglopi-two.vercel.app/api/telemetry";
 // Jika Laravel sudah online, gunakan domainnya, misal: "https://domain-anda.com/api/telemetry"
 
 void setup() {
