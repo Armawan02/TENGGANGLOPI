@@ -3,15 +3,12 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
+#include <WiFiManager.h> // Library tambahan untuk Captive Portal
 
 // Definisi PIN LoRa (Sesuaikan jika Anda menggunakan pin yang berbeda)
 #define ss 5
 #define rst 14
 #define dio0 26
-
-// ===== PENGATURAN WIFI =====
-const char* ssid = "NAMA_WIFI_ANDA";
-const char* password = "PASSWORD_WIFI_ANDA";
 
 // ===== PENGATURAN API LARAVEL =====
 // Ganti IP di bawah ini dengan IP komputer tempat Laravel berjalan di jaringan lokal yang sama
@@ -25,13 +22,22 @@ void setup() {
 
   Serial.println("--- INISIALISASI GATEWAY TENGGANG LOPI ---");
 
-  // 1. Koneksi ke WiFi
-  WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi");
-  while(WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+  // 1. Koneksi ke WiFi Menggunakan WiFiManager (Tanpa Hardcode)
+  WiFiManager wm;
+  
+  // wm.resetSettings(); // Buka komentar ini JIKA ingin mereset WiFi yang tersimpan untuk debugging
+  
+  Serial.println("Mencari WiFi... Jika tidak ada, membuat Hotspot 'TENGGANGLOPI_GATEWAY'...");
+  
+  // Membuat Hotspot bernama "TENGGANGLOPI_GATEWAY" (tanpa password)
+  bool res = wm.autoConnect("TENGGANGLOPI_GATEWAY");
+
+  if(!res) {
+    Serial.println("❌ Gagal terhubung ke WiFi atau waktu tunggu habis!");
+    delay(3000);
+    ESP.restart(); // Restart agar mencoba kembali
+  } 
+
   Serial.println("");
   Serial.print("✅ WiFi Terhubung. IP Address: ");
   Serial.println(WiFi.localIP());
