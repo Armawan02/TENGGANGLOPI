@@ -31,6 +31,8 @@ class FirebaseTrackingController extends Controller
                         'gyroscope' => $data['gyroscope'] ?? ['x' => 0, 'y' => 0, 'z' => 0],
                         'heartbeat' => $data['heartbeat'] ?? 0,
                         'waterLevel' => $data['waterLevel'] ?? 0,
+                        'coordinates' => $data['coordinates'] ?? null,
+                        'bme280' => $data['bme280'] ?? null,
                     ]
                 ]);
             } else {

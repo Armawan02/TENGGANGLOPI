@@ -154,12 +154,24 @@
                             statusEl.innerHTML = 'Status: Terhubung 🟢';
                             statusEl.style.color = '#10b981';
                             
+                            let latText = data.coordinates ? data.coordinates.lat : '-';
+                            let lngText = data.coordinates ? data.coordinates.lng : '-';
+                            
                             dataEl.innerHTML = `
+                                📍 GPS: ${latText}, ${lngText}<br>
                                 💧 Air: ${data.waterLevel} cm<br>
                                 ❤️ BPM: ${data.heartbeat}<br>
                                 🧭 Gyro X: ${data.gyroscope.x} | Y: ${data.gyroscope.y} | Z: ${data.gyroscope.z}<br>
                                 🔔 Buzzer: ${data.buzzerSignal}
                             `;
+                        }
+                        
+                        // Update posisi GPS pada Marker
+                        if(data.coordinates && data.coordinates.lat && data.coordinates.lng) {
+                            let newLatLng = new L.LatLng(data.coordinates.lat, data.coordinates.lng);
+                            markerNode1.setLatLng(newLatLng);
+                            // Opsional: pusatkan peta ke kapal
+                            // map.panTo(newLatLng);
                         }
                     }
                 })
