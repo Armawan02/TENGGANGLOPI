@@ -26,7 +26,14 @@ class TelemetryController extends Controller
             // {"Suhu":29.18, "Kelembapan":75.74, "Tekanan":1010.65, "Kemiringan":40, "JarakAir":379.7, "Lat":-3.539471, "Lng":118.989296}
             
             // Parse ID Node dari ESP32 (Jika ada), kalau tidak ada anggap NODE_01
-            $docId = $request->input('NodeID', 'NODE_01');
+            $rawId = $request->input('NodeID', $request->input('ID', $request->input('id', 'NODE_01')));
+            // Ganti spasi/strip jadi underscore dan ubah ke huruf besar agar rapi (misal "Node-2" jadi "NODE_02")
+            $docId = strtoupper(str_replace('-', '_', $rawId));
+            
+            // Khusus jika formatnya NODE_2, ubah jadi NODE_02 agar selaras dengan NODE_01
+            if (preg_match('/^NODE_(\d)$/', $docId, $matches)) {
+                $docId = 'NODE_0' . $matches[1];
+            }
 
             // Mengambil dokumen yang ada dari fleet (atau buat array kosong jika belum ada)
             $nodeData = $this->firebaseService->getDocument('fleet', $docId);
