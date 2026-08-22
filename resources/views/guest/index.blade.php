@@ -240,7 +240,8 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            z-index: 2; /* Di atas animasi kapal */
+            position: relative;
+            z-index: 10; /* Di atas animasi kapal */
         }
 
         /* Hero Section */
