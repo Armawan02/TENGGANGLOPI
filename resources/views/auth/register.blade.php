@@ -28,6 +28,7 @@
             <select id="role" name="role" required style="width: 100%; padding: 14px 16px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 15px; color: var(--text-dark); transition: all 0.3s; outline: none; background-color: #f8fafc; cursor: pointer; appearance: auto;">
                 <option value="" disabled selected>Pilih Peran Anda</option>
                 <option value="petugas" {{ old('role') == 'petugas' ? 'selected' : '' }}>Petugas Lapangan</option>
+                <option value="superadmin" {{ old('role') == 'superadmin' ? 'selected' : '' }}>Super Admin (Command Center)</option>
             </select>
             @error('role')
                 <small style="color: var(--danger); margin-top: 5px; display: block;">{{ $message }}</small>
