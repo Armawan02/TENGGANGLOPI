@@ -888,7 +888,6 @@
 
     function triggerBuzzer() {
         if (!activeNodeId) {
-            alert("Silakan pilih kapal terlebih dahulu!");
             return;
         }
         
@@ -899,20 +898,20 @@
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify({ signal: 'ON' }) // atau PING
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert("Sinyal BUZZER DARURAT berhasil dikirim ke perangkat kapal!");
-            } else {
-                alert("Gagal memicu buzzer: " + data.message);
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Gagal terhubung ke API Buzzer.");
-        });
+            body: JSON.stringify({ signal: 'ON' }) 
+        }).catch(err => console.error(err));
+        
+        // Otomatis matikan (reset status Firebase) setelah 3.5 detik
+        setTimeout(() => {
+            fetch("{{ route('api.fleet.buzzer') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ signal: 'OFF' }) 
+            }).catch(err => console.error(err));
+        }, 3500);
     }
 
     // BMKG Weather API logic

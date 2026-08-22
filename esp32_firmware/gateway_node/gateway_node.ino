@@ -48,6 +48,7 @@ void setup() {
     Serial.println("❌ LoRa Gateway Gagal!");
     while (1) delay(10);
   }
+  LoRa.receive(); // Wajib agar gateway bersiap menerima
   
   Serial.println("✅ LoRa Gateway Siap! Menunggu telemetri dari laut...");
   Serial.println("==================================================");
@@ -93,6 +94,26 @@ void loop() {
       if (httpResponseCode > 0) {
         String payload = http.getString();
         Serial.println("Server Response: " + payload);
+
+        // --- CEK PERINTAH DARI DASHBOARD ---
+        // Mencari kata kunci buzzerSignal:"ON" (bisa menyesuaikan dengan JSON dari Firebase)
+        // Karena response JSON Firebase bisa berbentuk "buzzerSignal":"ON", kita gunakan indexOf
+        if (payload.indexOf("\"buzzerSignal\":\"ON\"") >= 0 || payload.indexOf("\"buzzerDarurat\":\"ON\"") >= 0) {
+          Serial.println("🚨 PERINTAH DITERIMA: NYALAKAN BUZZER DARURAT!");
+          delay(100); // Jeda sebelum Tx LoRa
+          LoRa.beginPacket();
+          LoRa.print("BUZZER_ON");
+          LoRa.endPacket();
+          LoRa.receive(); // Kembali ke mode mendengarkan
+        } else if (payload.indexOf("\"buzzerSignal\":\"OFF\"") >= 0 || payload.indexOf("\"buzzerDarurat\":\"OFF\"") >= 0 || payload.indexOf("\"buzzerSignal\":null") >= 0) {
+          // Jika dimatikan dari web (optional, jika ada tombol matikan)
+          delay(100); // Jeda sebelum Tx LoRa
+          LoRa.beginPacket();
+          LoRa.print("BUZZER_OFF");
+          LoRa.endPacket();
+          LoRa.receive(); // Kembali ke mode mendengarkan
+        }
+
       } else {
         Serial.print("Error code: ");
         Serial.println(httpResponseCode);
