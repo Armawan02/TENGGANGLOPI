@@ -57,12 +57,11 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password, ['rounds' => 12]),
             'role' => $request->role,
+            'status' => 'pending',
         ]);
 
         event(new Registered($user));
 
-        Auth::login($user);
-
-        return redirect(route('petugas.dashboard', absolute: false));
+        return redirect()->route('antrian');
     }
 }

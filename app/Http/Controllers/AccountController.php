@@ -53,6 +53,7 @@ class AccountController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password, ['rounds' => 12]), // WAJIB DI HASH
                 'role' => $request->role,
+                'status' => 'active', // Set active automatically for manually created accounts
                 'phone' => $request->phone ?? '-',
                 'created_at' => time(),
                 'updated_at' => time(),
@@ -66,6 +67,40 @@ class AccountController extends Controller
             return redirect()->back()->with('success', 'Akun berhasil ditambahkan!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menambahkan akun: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Menyetujui pendaftaran petugas (mengubah status dari pending menjadi active).
+     */
+    public function approve($id)
+    {
+        try {
+            $doc = $this->firebaseService->getDocument($this->collection, $id);
+            if (!$doc) {
+                return redirect()->back()->with('error', 'Data akun tidak ditemukan.');
+            }
+
+            if (($doc['status'] ?? 'active') === 'active') {
+                return redirect()->back()->with('error', 'Akun ini sudah berstatus aktif.');
+            }
+
+            $doc['status'] = 'active';
+            $doc['updated_at'] = time();
+
+            $this->firebaseService->saveDocument($this->collection, $doc, $id);
+            
+            // Kirim Email Notifikasi
+            try {
+                \Illuminate\Support\Facades\Mail::to($doc['email'])->send(new \App\Mail\AccountApprovedMail($doc['name']));
+            } catch (\Exception $mailEx) {
+                // Jangan gagalkan proses approve jika email gagal terkirim (misal karena config log/smtp belum siap)
+                \Illuminate\Support\Facades\Log::error("Gagal mengirim email persetujuan: " . $mailEx->getMessage());
+            }
+            
+            return redirect()->back()->with('success', 'Akun berhasil disetujui! Email notifikasi telah dikirim.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menyetujui akun: ' . $e->getMessage());
         }
     }
 

@@ -16,6 +16,10 @@ Route::get('/troll-bsod', function () {
     return view('troll.bsod');
 })->name('troll.bsod');
 
+Route::get('/antrian', function () {
+    return view('auth.antrian');
+})->name('antrian');
+
 Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->group(function () {
     Route::get('/dashboard', function () {
         return view('superadmin.dashboard');
@@ -56,6 +60,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->group(func
         Route::post('/accounts', [\App\Http\Controllers\AccountController::class, 'store'])->name('accounts.store');
         Route::put('/accounts/{id}', [\App\Http\Controllers\AccountController::class, 'update'])->name('accounts.update');
         Route::post('/accounts/{id}/reset-password', [\App\Http\Controllers\AccountController::class, 'resetPassword'])->name('accounts.reset-password');
+        Route::post('/accounts/{id}/approve', [\App\Http\Controllers\AccountController::class, 'approve'])->name('accounts.approve');
         Route::delete('/accounts/{id}', [\App\Http\Controllers\AccountController::class, 'destroy'])->name('accounts.destroy');
         
         // CRUD Data Nelayan

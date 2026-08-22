@@ -262,7 +262,14 @@
             </div>
             <div class="account-info">
                 <h3>{{ $account['name'] ?? 'Tanpa Nama' }}</h3>
-                <span class="badge-role">{{ $account['role'] ?? 'USER' }}</span>
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <span class="badge-role">{{ $account['role'] ?? 'USER' }}</span>
+                    @if(($account['status'] ?? 'active') === 'pending')
+                        <span class="badge-role" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">PENDING</span>
+                    @else
+                        <span class="badge-role" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">ACTIVE</span>
+                    @endif
+                </div>
             </div>
         </div>
         <div class="account-details">
@@ -276,6 +283,15 @@
             </div>
         </div>
         <div class="account-actions">
+            @if(($account['status'] ?? 'active') === 'pending')
+                <form action="{{ route('superadmin.administration.accounts.approve', $account['id']) }}" method="POST" style="width:100%; margin-bottom: 5px;">
+                    @csrf
+                    <button type="submit" class="btn-action" style="background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Setujui Akun
+                    </button>
+                </form>
+            @endif
             <button class="btn-action btn-reset" onclick="openResetModal('{{ $account['id'] }}', '{{ $account['name'] ?? '' }}')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"></path><circle cx="16.5" cy="7.5" r=".5"></circle></svg>
                 Reset Kata Sandi

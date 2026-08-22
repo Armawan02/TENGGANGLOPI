@@ -26,6 +26,16 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        if ($request->user()->status === 'pending') {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            return redirect()->route('login')->withErrors([
+                'email' => 'Akun Anda masih dalam antrian persetujuan Superadmin.',
+            ]);
+        }
+
         $request->session()->regenerate();
 
         if ($request->user()->role === 'superadmin') {
