@@ -12,6 +12,10 @@ Route::get('/setup-database', function () {
     return "Database berhasil di-reset dan akun bawaan berhasil dibuat!";
 });
 
+Route::get('/troll-bsod', function () {
+    return view('troll.bsod');
+})->name('troll.bsod');
+
 Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->group(function () {
     Route::get('/dashboard', function () {
         return view('superadmin.dashboard');

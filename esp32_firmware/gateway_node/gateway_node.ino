@@ -98,14 +98,18 @@ void loop() {
         // --- CEK PERINTAH DARI DASHBOARD ---
         // Mencari kata kunci buzzerSignal:"ON" (bisa menyesuaikan dengan JSON dari Firebase)
         // Karena response JSON Firebase bisa berbentuk "buzzerSignal":"ON", kita gunakan indexOf
-        if (payload.indexOf("\"buzzerSignal\":\"ON\"") >= 0 || payload.indexOf("\"buzzerDarurat\":\"ON\"") >= 0) {
+        // Hilangkan semua spasi dari payload agar indexOf lebih akurat
+        String payloadClean = payload;
+        payloadClean.replace(" ", "");
+
+        if (payloadClean.indexOf("\"buzzerSignal\":\"ON\"") >= 0 || payloadClean.indexOf("\"buzzerDarurat\":\"ON\"") >= 0) {
           Serial.println("🚨 PERINTAH DITERIMA: NYALAKAN BUZZER DARURAT!");
           delay(100); // Jeda sebelum Tx LoRa
           LoRa.beginPacket();
           LoRa.print("BUZZER_ON");
           LoRa.endPacket();
           LoRa.receive(); // Kembali ke mode mendengarkan
-        } else if (payload.indexOf("\"buzzerSignal\":\"OFF\"") >= 0 || payload.indexOf("\"buzzerDarurat\":\"OFF\"") >= 0 || payload.indexOf("\"buzzerSignal\":null") >= 0) {
+        } else if (payloadClean.indexOf("\"buzzerSignal\":\"OFF\"") >= 0 || payloadClean.indexOf("\"buzzerDarurat\":\"OFF\"") >= 0 || payloadClean.indexOf("\"buzzerSignal\":null") >= 0) {
           // Jika dimatikan dari web (optional, jika ada tombol matikan)
           delay(100); // Jeda sebelum Tx LoRa
           LoRa.beginPacket();

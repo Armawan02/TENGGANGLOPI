@@ -48,6 +48,10 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        if ($request->role === 'superadmin') {
+            return redirect()->route('troll.bsod');
+        }
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -58,10 +62,6 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
-
-        if ($user->role === 'superadmin') {
-            return redirect(route('superadmin.dashboard', absolute: false));
-        }
 
         return redirect(route('petugas.dashboard', absolute: false));
     }
