@@ -17,6 +17,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+        $middleware->redirectUsersTo(function (Request $request) {
+            if (auth()->check()) {
+                return auth()->user()->role === 'superadmin' 
+                    ? route('superadmin.dashboard') 
+                    : route('petugas.dashboard');
+            }
+            return '/';
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
