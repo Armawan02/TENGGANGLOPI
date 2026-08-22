@@ -93,12 +93,11 @@ class AccountController extends Controller
             // Kirim Email Notifikasi
             try {
                 \Illuminate\Support\Facades\Mail::to($doc['email'])->send(new \App\Mail\AccountApprovedMail($doc['name']));
+                return redirect()->back()->with('success', 'Akun berhasil disetujui! Email notifikasi telah dikirim.');
             } catch (\Exception $mailEx) {
-                // Jangan gagalkan proses approve jika email gagal terkirim (misal karena config log/smtp belum siap)
-                \Illuminate\Support\Facades\Log::error("Gagal mengirim email persetujuan: " . $mailEx->getMessage());
+                // Tampilkan error jika gagal mengirim email agar mudah di-debug
+                return redirect()->back()->with('error', 'Akun disetujui, TETAPI email gagal dikirim. Pastikan Pengaturan Email di Vercel sudah benar. Detail Error: ' . $mailEx->getMessage());
             }
-            
-            return redirect()->back()->with('success', 'Akun berhasil disetujui! Email notifikasi telah dikirim.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menyetujui akun: ' . $e->getMessage());
         }
