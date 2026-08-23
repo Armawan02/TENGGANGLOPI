@@ -887,7 +887,13 @@
     }
 
     function triggerBuzzer() {
+        if (localStorage.getItem('tengganglopi_setting_buzzer') === '0') {
+            alert('Fitur Buzzer Darurat telah dinonaktifkan di Pengaturan.');
+            return;
+        }
+
         if (!activeNodeId) {
+            alert('Pilih kapal terlebih dahulu dari daftar untuk menyalakan buzzer.');
             return;
         }
         

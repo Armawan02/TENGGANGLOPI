@@ -120,7 +120,7 @@
                 <p>Mainkan suara sirene saat ada SOS dari nelayan.</p>
             </div>
             <label class="switch">
-                <input type="checkbox" checked>
+                <input type="checkbox" id="toggle-buzzer" onchange="toggleSetting('buzzer', this.checked)">
                 <span class="slider"></span>
             </label>
         </div>
@@ -130,7 +130,7 @@
                 <p>Tampilkan popup jika kapal mendekati zona cuaca ekstrem.</p>
             </div>
             <label class="switch">
-                <input type="checkbox" checked>
+                <input type="checkbox" id="toggle-bmkg" onchange="toggleSetting('bmkg', this.checked)">
                 <span class="slider"></span>
             </label>
         </div>
@@ -140,7 +140,7 @@
                 <p>Kirim ringkasan operasional harian ke email Anda.</p>
             </div>
             <label class="switch">
-                <input type="checkbox">
+                <input type="checkbox" id="toggle-email" onchange="toggleSetting('email', this.checked)">
                 <span class="slider"></span>
             </label>
         </div>
@@ -215,10 +215,26 @@
         }
     }
 
-    // On page load, set active button
+    // Function to handle toggle switches
+    function toggleSetting(setting, isChecked) {
+        localStorage.setItem('tengganglopi_setting_' + setting, isChecked ? '1' : '0');
+    }
+
+    // On page load, set active button and toggles
     document.addEventListener("DOMContentLoaded", function() {
         const theme = localStorage.getItem('tengganglopi_theme') || 'cerah';
-        document.getElementById('btn-' + theme).classList.add('active');
+        const btnTheme = document.getElementById('btn-' + theme);
+        if(btnTheme) btnTheme.classList.add('active');
+
+        // Load Notification Toggles
+        const buzzer = localStorage.getItem('tengganglopi_setting_buzzer');
+        document.getElementById('toggle-buzzer').checked = (buzzer === null || buzzer === '1'); // default true
+
+        const bmkg = localStorage.getItem('tengganglopi_setting_bmkg');
+        document.getElementById('toggle-bmkg').checked = (bmkg === null || bmkg === '1'); // default true
+
+        const email = localStorage.getItem('tengganglopi_setting_email');
+        document.getElementById('toggle-email').checked = (email === '1'); // default false
     });
 </script>
 @endsection
