@@ -121,9 +121,73 @@
             iconAnchor: [14, 14]
         });
 
-        L.marker([-3.543, 118.974], {icon: shipIcon}).addTo(map).bindPopup('<strong style="color:#000;">Salili Mandar</strong><br><span style="color:#666;">Status: Offline</span>');
-        L.marker([-3.520, 118.950], {icon: shipIcon}).addTo(map).bindPopup('<strong style="color:#000;">Bintang Laut</strong><br><span style="color:#22c55e;">Status: Online</span>');
-        L.marker([-3.560, 119.010], {icon: shipIcon}).addTo(map).bindPopup('<strong style="color:#000;">Harapan Jaya</strong><br><span style="color:#22c55e;">Status: Online</span>');
+        // Simpan referensi marker yang aktif di peta
+        let fleetMarkers = {};
+
+        function updateFleetMap() {
+            fetch("{{ route('api.fleet.all') }}")
+                .then(response => response.json())
+                .then(res => {
+                    if(res.status === 'success') {
+                        let nodes = res.data;
+                        
+                        nodes.forEach(node => {
+                            let isOffline = false;
+                            if (node.heartbeat) {
+                                let nowUnix = Math.floor(Date.now() / 1000);
+                                if (nowUnix - node.heartbeat > 30) {
+                                    isOffline = true;
+                                }
+                            }
+                            
+                            let statusText = isOffline ? 'Status: Terputus 🔴' : 'Status: Terhubung 🟢';
+                            let statusColor = isOffline ? '#ef4444' : '#10b981';
+                            
+                            let latText = (node.coordinates && node.coordinates.lat !== 0) ? node.coordinates.lat : 'Belum Ada';
+                            let lngText = (node.coordinates && node.coordinates.lng !== 0) ? node.coordinates.lng : 'Belum Ada';
+                            
+                            let lastSeenTime = node.heartbeat ? new Date(node.heartbeat * 1000).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : '-';
+                            
+                            let mpuX = node.gyroscope ? node.gyroscope.x : 0;
+                            let mpuY = node.gyroscope ? node.gyroscope.y : 0;
+                            let mpuZ = node.gyroscope ? node.gyroscope.z : 0;
+                            
+                            let tooltipContent = `
+                                <div style="font-weight:700; color:#64748b; font-size:10px;">${node.id}</div>
+                                <div style="font-weight:700; color:#1e293b; font-size:12px;">${node.vesselName}</div>
+                                <div style="color:${statusColor}; font-size:11px; font-weight:600;">${statusText}</div>
+                                <div style="font-size:10px; color:#475569; margin-top:3px; line-height:1.4;">
+                                    📍 GPS: ${latText}, ${lngText}<br>
+                                    💧 Air: ${node.waterLevel ?? 0} cm<br>
+                                    🕒 Update: ${lastSeenTime}<br>
+                                    🧭 Gyro X: ${mpuX} | Y: ${mpuY} | Z: ${mpuZ}<br>
+                                    🔔 Buzzer: ${node.buzzerSignal ?? 'OFF'}
+                                </div>
+                            `;
+
+                            // Jika koordinat GPS valid dan bukan 0,0
+                            if (node.coordinates && node.coordinates.lat !== 0 && node.coordinates.lng !== 0) {
+                                let newLatLng = new L.LatLng(node.coordinates.lat, node.coordinates.lng);
+                                
+                                // Jika marker belum ada, buat baru
+                                if (!fleetMarkers[node.id]) {
+                                    fleetMarkers[node.id] = L.marker(newLatLng, {icon: shipIcon}).addTo(map)
+                                        .bindTooltip(tooltipContent, {permanent: true, direction: 'right', offset: [15, 0], className: 'ship-tooltip'});
+                                } else {
+                                    // Jika sudah ada, update posisi dan tooltip
+                                    fleetMarkers[node.id].setLatLng(newLatLng);
+                                    fleetMarkers[node.id].setTooltipContent(tooltipContent);
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(console.error);
+        }
+        
+        // Panggil pertama kali dan ulang setiap 3 detik
+        updateFleetMap();
+        setInterval(updateFleetMap, 3000);
     });
 </script>
 @endsection

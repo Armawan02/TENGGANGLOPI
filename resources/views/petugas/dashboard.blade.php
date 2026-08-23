@@ -848,11 +848,15 @@
         document.getElementById('status-ultra').innerText = waterStatus;
         document.getElementById('status-ultra').style.color = waterColor;
 
-        // 3. BME280 (Random / Optional if not in real data)
-        let temp = Math.floor(Math.random() * (36 - 22) + 22);
+        // 3. BME280 (Real Data dari Firebase)
+        let temp = node.bme280?.temperature ?? 0;
+        let rh = node.bme280?.humidity ?? 0;
+        let press = node.bme280?.pressure ?? 0;
+        
         document.getElementById('val-temp').innerHTML = temp + '&deg;C';
-        document.getElementById('val-rh').innerHTML = Math.floor(Math.random() * 40 + 60) + '%';
-        document.getElementById('val-press').innerHTML = Math.floor(Math.random() * 30 + 1000) + ' hPa';
+        document.getElementById('val-rh').innerHTML = rh + '%';
+        document.getElementById('val-press').innerHTML = press + ' hPa';
+        
         let aiBadge = document.getElementById('bmeAiBadge');
         aiBadge.classList.remove('waspada', 'bahaya');
         
@@ -861,29 +865,62 @@
         if (temp > 33) { aiStatus = 'CUACA BAHAYA'; aiColor = 'var(--danger)'; aiBadge.classList.add('bahaya'); }
         else if (temp > 29) { aiStatus = 'CUACA WASPADA'; aiColor = 'var(--warning)'; aiBadge.classList.add('waspada'); }
         
+        if (isOffline) {
+            aiStatus = '-';
+            document.getElementById('status-bme').innerText = 'Sensor Mati (Offline)';
+            document.getElementById('status-bme').style.color = 'var(--text-muted)';
+            aiBadge.classList.remove('bahaya', 'waspada');
+            document.getElementById('val-temp').innerHTML = '- - &deg;C';
+            document.getElementById('val-rh').innerHTML = '- - %';
+            document.getElementById('val-press').innerHTML = '- - hPa';
+        } else {
+            document.getElementById('status-bme').innerText = 'Model Edge AI: Aktif';
+            document.getElementById('status-bme').style.color = 'var(--success)';
+        }
+        
         document.getElementById('bmeAiText').innerText = aiStatus;
-        document.getElementById('status-bme').innerText = 'Model Edge AI: Aktif';
 
-        // 4. Baterai (Random / Optional)
-        let batt = Math.floor(Math.random() * (100 - 40) + 40);
+        // 4. Baterai (Sementara kita asumsikan 100% jika ESP tidak mengirim baterai)
+        let batt = node.battery ?? 100;
         document.getElementById('val-batt').innerText = batt + ' %';
         let battBar = document.getElementById('val-batt-bar');
         battBar.style.width = batt + '%';
         battBar.style.background = (batt > 50) ? 'var(--success)' : ((batt > 20) ? 'var(--warning)' : 'var(--danger)');
-        document.getElementById('status-batt').innerText = (batt > 20) ? 'Baterai Normal' : 'Baterai Lemah';
-        document.getElementById('status-batt').style.color = (batt > 20) ? 'var(--success)' : 'var(--danger)';
-
-        // 5. Lora Signal
-        let rssi = node.heartbeat ?? -85; // asumsikan heartbeat menyimpan rssi
-        document.getElementById('loraStatusText').innerText = rssi + ' dBm';
-        document.getElementById('loraBar1').classList.add('active');
-        document.getElementById('loraBar2').classList.toggle('active', rssi > -105);
-        document.getElementById('loraBar3').classList.toggle('active', rssi > -95);
-        document.getElementById('loraBar4').classList.toggle('active', rssi > -85);
         
-        document.getElementById('val-lora').innerText = rssi;
-        document.getElementById('status-lora').innerText = 'Terkoneksi';
-        document.getElementById('status-lora').style.color = 'var(--success)';
+        if (isOffline) {
+            document.getElementById('status-batt').innerText = 'Sensor Mati (Offline)';
+            document.getElementById('status-batt').style.color = 'var(--text-muted)';
+            document.getElementById('val-batt').innerText = '- - %';
+            battBar.style.width = '0%';
+        } else {
+            document.getElementById('status-batt').innerText = (batt > 20) ? 'Baterai Normal' : 'Baterai Lemah';
+            document.getElementById('status-batt').style.color = (batt > 20) ? 'var(--success)' : 'var(--danger)';
+        }
+
+        // 5. Lora Signal & Status Koneksi
+        let rssi = node.rssi ?? -85; // mengambil rssi langsung dari gateway
+        
+        if (isOffline) {
+            document.getElementById('loraStatusText').innerText = 'Offline';
+            document.getElementById('loraBar1').classList.remove('active');
+            document.getElementById('loraBar2').classList.remove('active');
+            document.getElementById('loraBar3').classList.remove('active');
+            document.getElementById('loraBar4').classList.remove('active');
+            
+            document.getElementById('val-lora').innerText = '- -';
+            document.getElementById('status-lora').innerText = 'Terputus';
+            document.getElementById('status-lora').style.color = 'var(--danger)';
+        } else {
+            document.getElementById('loraStatusText').innerText = rssi + ' dBm';
+            document.getElementById('loraBar1').classList.add('active');
+            document.getElementById('loraBar2').classList.toggle('active', rssi > -105);
+            document.getElementById('loraBar3').classList.toggle('active', rssi > -95);
+            document.getElementById('loraBar4').classList.toggle('active', rssi > -85);
+            
+            document.getElementById('val-lora').innerText = rssi;
+            document.getElementById('status-lora').innerText = 'Terkoneksi';
+            document.getElementById('status-lora').style.color = 'var(--success)';
+        }
     }
 
     function triggerBuzzer() {
@@ -897,7 +934,6 @@
             return;
         }
         
-        // Asumsi hanya untuk NODE_01 sesuai dengan route di FirebaseTrackingController
         fetch("{{ route('api.fleet.buzzer') }}", {
             method: 'POST',
             headers: {
