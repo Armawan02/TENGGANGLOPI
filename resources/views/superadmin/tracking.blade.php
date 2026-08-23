@@ -87,6 +87,18 @@
             attribution: '&copy; <a href="https://www.google.com/maps">Google Maps</a>'
         }).addTo(map);
 
+        // Batas Wilayah Operasional Nelayan Pesisir (Contoh: 12 Mil Laut ~ 22.2 km)
+        var fishingZone = L.circle([-3.543, 118.974], {
+            color: '#3b82f6',
+            weight: 2,
+            dashArray: '8, 8',
+            fillColor: '#3b82f6',
+            fillOpacity: 0.1,
+            radius: 22200 // 22.2 km (12 Nautical Miles)
+        }).addTo(map);
+        fishingZone.bindPopup("<b>Batas Operasional Nelayan</b><br>Radius 12 Mil Laut (±22.2 KM) dari pangkalan pesisir.");
+
+
 
         var shipIcon = L.divIcon({
             html: `<div style="background:var(--accent); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 10px rgba(0,0,0,0.5);">

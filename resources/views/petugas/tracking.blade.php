@@ -73,10 +73,21 @@
     document.addEventListener("DOMContentLoaded", function() {
         var map = L.map('map-full').setView([-3.543, 118.974], 12);
 
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
             maxZoom: 19,
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            attribution: '&copy; <a href="https://www.google.com/maps">Google Maps</a>'
         }).addTo(map);
+
+        // Batas Wilayah Operasional Nelayan Pesisir (Contoh: 12 Mil Laut ~ 22.2 km)
+        var fishingZone = L.circle([-3.543, 118.974], {
+            color: '#3b82f6',
+            weight: 2,
+            dashArray: '8, 8',
+            fillColor: '#3b82f6',
+            fillOpacity: 0.1,
+            radius: 22200 // 22.2 km (12 Nautical Miles)
+        }).addTo(map);
+        fishingZone.bindPopup("<b>Batas Operasional Nelayan</b><br>Radius 12 Mil Laut (±22.2 KM) dari pangkalan pesisir.");
 
 
 
