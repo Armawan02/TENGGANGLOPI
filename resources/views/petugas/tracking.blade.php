@@ -78,16 +78,29 @@
             attribution: '&copy; <a href="https://www.google.com/maps">Google Maps</a>'
         }).addTo(map);
 
-        // Batas Wilayah Operasional Nelayan Pesisir (Contoh: 12 Mil Laut ~ 22.2 km)
-        var fishingZone = L.circle([-3.543, 118.974], {
-            color: '#3b82f6',
-            weight: 2,
-            dashArray: '8, 8',
-            fillColor: '#3b82f6',
-            fillOpacity: 0.1,
-            radius: 22200 // 22.2 km (12 Nautical Miles)
-        }).addTo(map);
-        fishingZone.bindPopup("<b>Batas Operasional Nelayan</b><br>Radius 12 Mil Laut (±22.2 KM) dari pangkalan pesisir.");
+        var bmkgIcon = L.divIcon({
+            html: `<div style="background:#f59e0b; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 10px rgba(0,0,0,0.3);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+                   </div>`,
+            className: 'custom-bmkg-icon',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+        });
+        
+        var bmkgStations = [
+            { name: 'Stasiun Meteorologi Tampa Padang (Mamuju)', lat: -2.5900, lng: 119.0251 },
+            { name: 'Stasiun Meteorologi Majene', lat: -3.5507, lng: 118.9805 },
+            { name: 'Stasiun Meteorologi Paotere (Makassar)', lat: -5.1186, lng: 119.4124 },
+            { name: 'Stasiun Klimatologi Sulawesi Selatan (Maros)', lat: -5.0592, lng: 119.5539 },
+            { name: 'Stasiun Meteorologi Aroepala (Selayar)', lat: -6.1666, lng: 120.4439 },
+            { name: 'Stasiun Geofisika Gowa', lat: -5.2045, lng: 119.4674 },
+            { name: 'Stasiun Meteorologi Andi Jemma (Luwu Utara)', lat: -2.5594, lng: 120.3235 }
+        ];
+
+        bmkgStations.forEach(function(station) {
+            L.marker([station.lat, station.lng], {icon: bmkgIcon}).addTo(map)
+             .bindPopup('<strong style="color:var(--text-primary); font-size:12px;">' + station.name + '</strong><br><span style="color:var(--text-muted); font-size:11px;">Stasiun Pemantau Cuaca BMKG</span>');
+        });
 
 
 
