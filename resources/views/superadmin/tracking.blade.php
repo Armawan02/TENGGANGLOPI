@@ -73,21 +73,6 @@
 @section('content')
 <div class="map-container" style="position: relative;">
     <div id="map-full"></div>
-    <div class="map-legend">
-        <div class="legend-title">Indikator Cuaca Ekstrem</div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: rgba(248, 113, 113, 0.4); border: 2px solid var(--danger);"></div>
-            <span>Badai / Gelombang Tinggi</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: rgba(251, 191, 36, 0.4); border: 2px solid var(--warning);"></div>
-            <span>Hujan Lebat / Angin Kencang</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: rgba(52, 211, 153, 0.4); border: 2px solid var(--success);"></div>
-            <span>Aman</span>
-        </div>
-    </div>
 </div>
 @endsection
 
@@ -102,24 +87,6 @@
             attribution: '&copy; <a href="https://www.google.com/maps">Google Maps</a>'
         }).addTo(map);
 
-        // Red Zone & Yellow Zone - BMKG Data
-        if (localStorage.getItem('tengganglopi_setting_bmkg') !== '0') {
-            var dangerCircle = L.circle([-3.650, 118.850], {
-                color: '#F87171',
-                fillColor: '#F87171',
-                fillOpacity: 0.2,
-                radius: 8000 // 8km radius
-            }).addTo(map);
-            dangerCircle.bindPopup("<b>Status: BAHAYA</b><br>Gelombang setinggi 3 meter. Hindari area ini.");
-
-            var warningCircle = L.circle([-3.450, 119.100], {
-                color: '#FBBF24',
-                fillColor: '#FBBF24',
-                fillOpacity: 0.2,
-                radius: 12000 // 12km radius
-            }).addTo(map);
-            warningCircle.bindPopup("<b>Status: WASPADA</b><br>Hujan badai dengan angin 25 knot.");
-        }
 
         var shipIcon = L.divIcon({
             html: `<div style="background:var(--accent); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 10px rgba(0,0,0,0.5);">
