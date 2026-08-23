@@ -807,6 +807,24 @@
         const node = fleetNodesData[nodeId];
         activeNodeId = nodeId;
 
+        // Update Panel Title
+        const titleEl = document.getElementById('sensor-panel-title');
+        if (titleEl) {
+            titleEl.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent);"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                Menampilkan Sensor: ${node.vesselName || node.id}
+            `;
+        }
+
+        // Check Offline Status
+        let isOffline = false;
+        if (node.heartbeat) {
+            let nowUnix = Math.floor(Date.now() / 1000);
+            if (nowUnix - node.heartbeat > 30) {
+                isOffline = true;
+            }
+        }
+
         // 1. MPU6050
         let roll = node.gyroscope?.x ?? 0;
         let pitch = node.gyroscope?.y ?? 0;
@@ -827,6 +845,16 @@
         if (Math.abs(roll) >= 90) { mpuStatus = 'TERBALIK'; mpuColor = 'var(--danger)'; document.getElementById('mpuGaugeVal').classList.add('status-blink-red'); }
         else if (Math.abs(roll) >= 60) { mpuStatus = 'WASPADA'; mpuColor = 'var(--warning)'; }
         
+        if (isOffline) {
+            mpuStatus = 'Sensor Mati (Offline)';
+            mpuColor = 'var(--text-muted)';
+            document.getElementById('mpuGaugeVal').classList.remove('status-blink-red');
+            document.getElementById('val-roll').innerHTML = '- - &deg;';
+            document.getElementById('val-pitch').innerHTML = '- - &deg;';
+            document.getElementById('val-yaw').innerHTML = '- - &deg;';
+            document.getElementById('mpuGaugeVal').style.strokeDashoffset = 283;
+        }
+        
         document.getElementById('mpuGaugeVal').style.stroke = mpuColor;
         document.getElementById('status-mpu').innerText = mpuStatus;
         document.getElementById('status-mpu').style.color = mpuColor;
@@ -844,6 +872,15 @@
         let waterColor = 'var(--success)';
         if (waterDist < 15) { waterStatus = 'TENGGELAM (KRITIS)'; waterColor = 'var(--danger)'; waterBar.classList.add('bahaya'); }
         else if (waterDist < 50) { waterStatus = 'BOCOR (AIR MASUK)'; waterColor = 'var(--warning)'; waterBar.classList.add('waspada'); }
+        
+        if (isOffline) {
+            waterStatus = 'Sensor Mati (Offline)';
+            waterColor = 'var(--text-muted)';
+            waterBar.classList.remove('bahaya', 'waspada');
+            document.getElementById('val-water').innerText = '- -';
+            waterBar.style.height = '0%';
+            document.getElementById('val-water-pct').innerText = '- - % Penuh';
+        }
         
         document.getElementById('status-ultra').innerText = waterStatus;
         document.getElementById('status-ultra').style.color = waterColor;
