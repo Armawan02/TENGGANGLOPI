@@ -56,22 +56,23 @@
         </div>
         
         <div class="content">
-            <p>Halo, <strong>{{ $userName }}</strong>!</p>
+            <p>Halo, <strong><?php echo e($userName); ?></strong>!</p>
             
-            <p>Selamat <strong>{{ $userName }}</strong>, Anda berhasil menjadi petugas pemantauan dashboard <strong>TENGGANGLOPI</strong>!</p>
+            <p>Selamat <strong><?php echo e($userName); ?></strong>, Anda berhasil menjadi petugas pemantauan dashboard <strong>TENGGANGLOPI</strong>!</p>
             
             <p>Pendaftaran akun Anda telah disetujui. Anda sekarang memiliki akses penuh untuk memonitor aktivitas perairan dan sistem keselamatan kapal.</p>
             
             <p>Silakan klik tombol di bawah ini untuk mengakses dashboard petugas sesuai dengan role akun Anda:</p>
             
             <div style="text-align: center;">
-                <a href="{{ $loginUrl }}" class="btn">Login Sekarang</a>
+                <a href="<?php echo e($loginUrl); ?>" class="btn">Login Sekarang</a>
             </div>
         </div>
         
         <div class="footer">
-            <p>&copy; {{ date('Y') }} TENGGANGLOPI Command Center. Semua hak dilindungi.</p>
+            <p>&copy; <?php echo e(date('Y')); ?> TENGGANGLOPI Command Center. Semua hak dilindungi.</p>
         </div>
     </div>
 </body>
 </html>
+<?php /**PATH D:\UNSULBAR\PEMROGRAMAN\laragon\www\TENGGANGLOPI\resources\views/emails/account_approved.blade.php ENDPATH**/ ?>
