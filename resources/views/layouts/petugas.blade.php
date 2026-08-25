@@ -31,9 +31,10 @@
         }
         
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+    </style>
         
-        /* Theme Engine Script (Must be in head to prevent flickering) */
-        <script>
+    <!-- Theme Engine Script (Must be in head to prevent flickering) -->
+    <script>
             (function() {
                 const theme = localStorage.getItem('tengganglopi_theme') || 'cerah';
                 const root = document.documentElement;
@@ -73,6 +74,7 @@
             })();
         </script>
         
+    <style>
         body {
             background-color: var(--bg-main);
             color: var(--text-primary);
