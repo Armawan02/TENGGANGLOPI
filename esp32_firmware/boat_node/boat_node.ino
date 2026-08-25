@@ -122,11 +122,11 @@ void loop() {
     float jarakAir = (duration * 0.0343) / 2;
 
     String statusKebocoran = "";
-    if (jarakAir == 0 || jarakAir >= 20) {
+    if (jarakAir == 0 || jarakAir >= 50) {
       statusKebocoran = "AMAN";
-    } else if (jarakAir >= 10 && jarakAir < 20) {
+    } else if (jarakAir >= 15 && jarakAir < 50) {
       statusKebocoran = "BOCOR";
-    } else { // < 10 cm
+    } else { // < 15 cm
       statusKebocoran = "TENGGELAM";
     }
 
