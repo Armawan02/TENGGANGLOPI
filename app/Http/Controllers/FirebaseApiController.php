@@ -66,6 +66,48 @@ class FirebaseApiController extends Controller
     }
 
     /**
+     * Mengambil data node/kapal untuk publik (tanpa data sensitif)
+     */
+    public function getPublicFleetList()
+    {
+        try {
+            $fishermen = $this->firebaseService->getCollection('fishermen');
+            $fleetData = $this->firebaseService->getCollection('fleet');
+            
+            $fishermenMap = [];
+            foreach ($fishermen as $f) {
+                if (!empty($f['node_id'])) {
+                    $fishermenMap[$f['node_id']] = $f;
+                }
+            }
+            
+            $publicFleet = [];
+            foreach ($fleetData as $fd) {
+                if (isset($fd['id'])) {
+                    $nodeId = $fd['id'];
+                    $fish = $fishermenMap[$nodeId] ?? [];
+                    
+                    $publicFleet[] = [
+                        'id' => $nodeId,
+                        'vesselName' => !empty($fish['boat_name']) ? $fish['boat_name'] : 'Kapal Tanpa Nama',
+                        'heartbeat' => $fd['heartbeat'] ?? null,
+                        'coordinates' => $fd['coordinates'] ?? null,
+                        // Data sensitif seperti nama nelayan, riwayat SOS disembunyikan
+                    ];
+                }
+            }
+            
+            return response()->json([
+                'status' => 'success',
+                'data' => $publicFleet
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('getPublicFleetList Error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan sistem.'], 500);
+        }
+    }
+
+    /**
      * Mengambil riwayat log kejadian terbaru
      */
     public function getRecentLogs()

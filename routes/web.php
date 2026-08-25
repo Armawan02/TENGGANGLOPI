@@ -70,9 +70,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->group(func
         Route::delete('/fishermen/{id}', [\App\Http\Controllers\FishermanController::class, 'destroy'])->name('fishermen.destroy');
     });
 
-    Route::get('/settings', function () {
-        return view('superadmin.settings');
-    })->name('superadmin.settings');
+    Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('superadmin.settings');
+    Route::post('/settings/sensor', [\App\Http\Controllers\SettingsController::class, 'updateSensor'])->name('superadmin.settings.sensor');
 });
 
 Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function () {
@@ -88,22 +87,7 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
         return view('petugas.history');
     })->name('petugas.history');
 
-    Route::get('/system-overview', function () {
-        return view('petugas.system_overview');
-    })->name('petugas.system_overview');
-    
-    Route::get('/risk-map', function () {
-        return view('petugas.risk_map');
-    })->name('petugas.risk_map');
-    
-    Route::get('/healing-activity', function () {
-        return view('petugas.healing_activity');
-    })->name('petugas.healing_activity');
-    
-    Route::get('/evolution-engine', function () {
-        return view('petugas.evolution_engine');
-    })->name('petugas.evolution_engine');
-    
+
     Route::get('/settings', function () {
         return view('petugas.settings');
     })->name('petugas.settings');
@@ -158,6 +142,8 @@ Route::get('/proxy/bmkg', function (Illuminate\Http\Request $request) {
         return response()->json(['error' => 'Error Proxy: ' . $e->getMessage()], 500);
     }
 });
+
+Route::get('/api/fleet/public', [\App\Http\Controllers\FirebaseApiController::class, 'getPublicFleetList'])->name('api.fleet.public');
 
 require __DIR__.'/auth.php';
 

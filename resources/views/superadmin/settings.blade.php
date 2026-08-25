@@ -145,6 +145,66 @@
             </label>
         </div>
     </div>
+
+    <!-- Sensor Settings -->
+    <div class="settings-card" style="grid-column: 1 / -1;">
+        <div class="settings-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent)"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            Pengaturan Ambang Batas Sensor (Edge-AI)
+        </div>
+        
+        @if(session('success'))
+            <div style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; font-weight: 600;">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; font-weight: 600;">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        <form action="{{ route('superadmin.settings.sensor') }}" method="POST">
+            @csrf
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- Kebocoran -->
+                <div>
+                    <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--text-primary);">Deteksi Kebocoran Air (Ultrasonik)</h4>
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Batas Bocor/Waspada (cm)</label>
+                        <input type="number" name="water_warning" value="{{ $settings['water_warning'] ?? 50 }}" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary); outline: none;">
+                        <small style="color: var(--text-muted); font-size: 11px;">Jarak air < nilai ini akan berstatus BOCOR.</small>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Batas Tenggelam/Bahaya (cm)</label>
+                        <input type="number" name="water_danger" value="{{ $settings['water_danger'] ?? 15 }}" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary); outline: none;">
+                        <small style="color: var(--text-muted); font-size: 11px;">Jarak air < nilai ini akan berstatus TENGGELAM.</small>
+                    </div>
+                </div>
+
+                <!-- Kemiringan -->
+                <div>
+                    <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--text-primary);">Stabilitas Kapal (MPU6050)</h4>
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Batas Waspada Kemiringan (°)</label>
+                        <input type="number" name="tilt_warning" value="{{ $settings['tilt_warning'] ?? 60 }}" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary); outline: none;">
+                        <small style="color: var(--text-muted); font-size: 11px;">Sudut ≥ nilai ini akan berstatus WASPADA.</small>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Batas Terbalik/Bahaya (°)</label>
+                        <input type="number" name="tilt_danger" value="{{ $settings['tilt_danger'] ?? 90 }}" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary); outline: none;">
+                        <small style="color: var(--text-muted); font-size: 11px;">Sudut ≥ nilai ini akan berstatus TERBALIK (SOS Otomatis).</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: right; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                <button type="submit" style="background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                    Simpan Pengaturan Sensor
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 @endsection

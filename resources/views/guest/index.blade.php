@@ -6,6 +6,7 @@
     <title>TENGGANGLOPI - Inovasi Infrastruktur Maritim</title>
     <link rel="icon" type="image/png" href="{{ asset('isc.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
             --primary: #2563eb;
@@ -513,6 +514,7 @@
             <div class="nav-links">
                 <a href="#beranda">Beranda</a>
                 <a href="#fitur">Fitur Utama</a>
+                <a href="#pemantauan">Live Peta</a>
                 <a href="#tentang">Tentang Sistem</a>
             </div>
             <a href="{{ route('login') }}" class="btn-login">Login Akses</a>
@@ -590,6 +592,30 @@
                 </div>
                 <div class="feature-title">Dashboard Base Station</div>
                 <div class="feature-desc">Antarmuka pusat untuk otoritas keselamatan memantau data sensor, cuaca, dan peringatan dini (Automated SOS).</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pemantauan Section -->
+    <section id="pemantauan" class="features-section" style="background-color: #f1f5f9;">
+        <h2 class="section-title">Live <span>Pemantauan</span> Publik</h2>
+        <div style="max-width: 1200px; margin: 0 auto; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <div id="public-map" style="height: 500px; width: 100%; z-index: 1;"></div>
+            <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; background: #fff; border-top: 1px solid #e2e8f0;">
+                <div>
+                    <h4 style="font-size: 18px; color: var(--text-dark); margin-bottom: 5px;">Peta Posisi Perahu Nelayan</h4>
+                    <p style="font-size: 14px; color: var(--text-muted);">Data koordinat ini diperbarui secara real-time via LoRaWAN.</p>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #10b981;"></span>
+                        <span style="font-size: 13px; font-weight: 600; color: var(--text-dark);">Terhubung</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444;"></span>
+                        <span style="font-size: 13px; font-weight: 600; color: var(--text-dark);">Terputus</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -770,5 +796,74 @@
     
         </script>
 
+        <!-- Leaflet Map Script -->
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                var publicMap = L.map('public-map').setView([-3.543, 118.974], 12);
+                L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                    maxZoom: 19,
+                    attribution: '&copy; Google Maps'
+                }).addTo(publicMap);
+
+                var shipIcon = L.divIcon({
+                    html: `<div style="background:#2563eb; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 10px rgba(0,0,0,0.5);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="5" r="3"></circle><line x1="12" y1="22" x2="12" y2="8"></line><path d="M5 12H2a10 10 0 0 0 20 0h-3"></path></svg>
+                           </div>`,
+                    className: 'custom-ship-icon',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+
+                let publicMarkers = {};
+
+                function updatePublicMap() {
+                    fetch("/api/fleet/public")
+                        .then(response => response.json())
+                        .then(res => {
+                            if(res.status === 'success') {
+                                res.data.forEach(node => {
+                                    let isOffline = false;
+                                    if (node.heartbeat) {
+                                        let nowUnix = Math.floor(Date.now() / 1000);
+                                        if (nowUnix - node.heartbeat > 30) isOffline = true;
+                                    }
+                                    
+                                    let statusText = isOffline ? 'Terputus 🔴' : 'Terhubung 🟢';
+                                    let tooltipContent = `
+                                        <div style="font-weight:700; color:#1e293b; font-size:12px;">${node.vesselName}</div>
+                                        <div style="color:#64748b; font-size:11px; font-weight:600;">Status: ${statusText}</div>
+                                    `;
+
+                                    if (node.coordinates && node.coordinates.lat !== 0 && node.coordinates.lng !== 0) {
+                                        let newLatLng = new L.LatLng(node.coordinates.lat, node.coordinates.lng);
+                                        if (!publicMarkers[node.id]) {
+                                            publicMarkers[node.id] = L.marker(newLatLng, {icon: shipIcon}).addTo(publicMap)
+                                                .bindTooltip(tooltipContent, {direction: 'top'});
+                                        } else {
+                                            publicMarkers[node.id].setLatLng(newLatLng);
+                                            publicMarkers[node.id].setTooltipContent(tooltipContent);
+                                        }
+                                    }
+                                });
+                            }
+                        })
+                        .catch(console.error);
+                }
+                
+                // Initialize map if element is in view to prevent rendering bugs
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            publicMap.invalidateSize();
+                            updatePublicMap();
+                        }
+                    });
+                });
+                observer.observe(document.getElementById('pemantauan'));
+                
+                setInterval(updatePublicMap, 5000);
+            });
+        </script>
     </body>
 </html>
