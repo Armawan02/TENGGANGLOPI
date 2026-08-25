@@ -114,36 +114,34 @@
             Preferensi Notifikasi
         </div>
         
-        <div class="setting-item">
-            <div class="setting-info">
-                <h4>Notifikasi Darurat Suara (Buzzer)</h4>
-                <p>Mainkan suara sirene saat ada SOS dari nelayan.</p>
+        <form action="{{ route('petugas.settings.notifications') }}" method="POST">
+            @csrf
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Notifikasi Darurat Suara (Buzzer)</h4>
+                    <p>Mainkan suara sirene saat ada SOS dari nelayan.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" name="notify_buzzer" {{ (Auth::user()->notify_buzzer ?? true) ? 'checked' : '' }}>
+                    <span class="slider"></span>
+                </label>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="toggle-buzzer" onchange="toggleSetting('buzzer', this.checked)">
-                <span class="slider"></span>
-            </label>
-        </div>
-        <div class="setting-item">
-            <div class="setting-info">
-                <h4>Peringatan Cuaca BMKG</h4>
-                <p>Tampilkan popup jika kapal mendekati zona cuaca ekstrem.</p>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Peringatan Cuaca BMKG</h4>
+                    <p>Tampilkan toast peringatan dini jika cuaca buruk terdeteksi di koordinat stasiun.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" name="notify_bmkg" {{ (Auth::user()->notify_bmkg ?? true) ? 'checked' : '' }}>
+                    <span class="slider"></span>
+                </label>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="toggle-bmkg" onchange="toggleSetting('bmkg', this.checked)">
-                <span class="slider"></span>
-            </label>
-        </div>
-        <div class="setting-item">
-            <div class="setting-info">
-                <h4>Laporan Harian via Email</h4>
-                <p>Kirim ringkasan operasional harian ke email Anda.</p>
+            <div style="text-align: right; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                <button type="submit" style="background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                    Simpan Preferensi
+                </button>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="toggle-email" onchange="toggleSetting('email', this.checked)">
-                <span class="slider"></span>
-            </label>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -215,26 +213,11 @@
         }
     }
 
-    // Function to handle toggle switches
-    function toggleSetting(setting, isChecked) {
-        localStorage.setItem('tengganglopi_setting_' + setting, isChecked ? '1' : '0');
-    }
-
-    // On page load, set active button and toggles
+    // On page load, set active button
     document.addEventListener("DOMContentLoaded", function() {
         const theme = localStorage.getItem('tengganglopi_theme') || 'cerah';
         const btnTheme = document.getElementById('btn-' + theme);
         if(btnTheme) btnTheme.classList.add('active');
-
-        // Load Notification Toggles
-        const buzzer = localStorage.getItem('tengganglopi_setting_buzzer');
-        document.getElementById('toggle-buzzer').checked = (buzzer === null || buzzer === '1'); // default true
-
-        const bmkg = localStorage.getItem('tengganglopi_setting_bmkg');
-        document.getElementById('toggle-bmkg').checked = (bmkg === null || bmkg === '1'); // default true
-
-        const email = localStorage.getItem('tengganglopi_setting_email');
-        document.getElementById('toggle-email').checked = (email === '1'); // default false
     });
 </script>
 @endsection

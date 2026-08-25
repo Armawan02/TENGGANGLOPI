@@ -72,6 +72,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->group(func
 
     Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('superadmin.settings');
     Route::post('/settings/sensor', [\App\Http\Controllers\SettingsController::class, 'updateSensor'])->name('superadmin.settings.sensor');
+    Route::post('/settings/notifications', [\App\Http\Controllers\SettingsController::class, 'updateNotifications'])->name('superadmin.settings.notifications');
 });
 
 Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function () {
@@ -91,6 +92,7 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
     Route::get('/settings', function () {
         return view('petugas.settings');
     })->name('petugas.settings');
+    Route::post('/settings/notifications', [\App\Http\Controllers\SettingsController::class, 'updateNotifications'])->name('petugas.settings.notifications');
 });
 
 Route::middleware('auth')->group(function () {
@@ -158,4 +160,8 @@ Route::middleware(['auth'])->prefix('api/fleet')->group(function () {
 
 Route::middleware(['auth'])->prefix('api/history')->group(function () {
     Route::get('/logs', [\App\Http\Controllers\FirebaseApiController::class, 'getRecentLogs'])->name('api.history.logs');
+});
+
+Route::middleware(['auth'])->prefix('api/notifications')->group(function () {
+    Route::get('/pending-users', [\App\Http\Controllers\NotificationController::class, 'getPendingUsers'])->name('api.notifications.pending');
 });

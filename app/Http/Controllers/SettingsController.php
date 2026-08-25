@@ -61,4 +61,20 @@ class SettingsController extends Controller
             return redirect()->back()->with('error', 'Gagal menyimpan pengaturan: ' . $e->getMessage());
         }
     }
+
+    public function updateNotifications(Request $request)
+    {
+        try {
+            $user = \Illuminate\Support\Facades\Auth::user();
+            
+            $user->notify_buzzer = $request->has('notify_buzzer');
+            $user->notify_bmkg = $request->has('notify_bmkg');
+            
+            $user->save();
+
+            return redirect()->back()->with('success', 'Preferensi notifikasi berhasil disimpan.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menyimpan preferensi notifikasi: ' . $e->getMessage());
+        }
+    }
 }

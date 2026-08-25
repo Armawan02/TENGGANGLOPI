@@ -614,6 +614,24 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Notification Bell -->
+                <div class="notification-container" style="position: relative;">
+                    <button id="btnNotification" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); position: relative;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                        <span id="notifBadge" style="display: none; position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; border: 2px solid var(--bg-main);">0</span>
+                    </button>
+                    
+                    <div id="notifDropdown" style="display: none; position: absolute; right: 0; top: 55px; width: 320px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); z-index: 1000; overflow: hidden;">
+                        <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 14px; color: var(--text-primary);">
+                            Pusat Notifikasi
+                        </div>
+                        <div id="notifList" style="max-height: 300px; overflow-y: auto;">
+                            <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px;">Tidak ada notifikasi baru</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="role-badge" style="align-self: center;">{{ Auth::user()->role ?? 'Superadmin' }}</div>
             </div>
         </div>
@@ -691,6 +709,73 @@
         }
         setInterval(updateTopbarClock, 1000);
         updateTopbarClock();
+        
+        // Notification Logic
+        const btnNotif = document.getElementById('btnNotification');
+        const notifDropdown = document.getElementById('notifDropdown');
+        const notifList = document.getElementById('notifList');
+        const notifBadge = document.getElementById('notifBadge');
+        
+        if (btnNotif) {
+            btnNotif.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notifDropdown.style.display = notifDropdown.style.display === 'none' ? 'block' : 'none';
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!notifDropdown.contains(e.target) && e.target !== btnNotif) {
+                    notifDropdown.style.display = 'none';
+                }
+            });
+            
+            function fetchNotifications() {
+                fetch('/api/notifications/pending-users')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            const weatherNotifs = window.bmkgNotifs || [];
+                            const totalCount = data.count + weatherNotifs.length;
+                            
+                            if (totalCount > 0) {
+                                notifBadge.style.display = 'block';
+                                notifBadge.innerText = totalCount > 9 ? '9+' : totalCount;
+                                
+                                let html = '';
+                                
+                                weatherNotifs.forEach(w => {
+                                    html += `<div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: rgba(239, 68, 68, 0.05); display: flex; gap: 10px; align-items: start;">
+                                        <div style="color: var(--danger);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
+                                        <div>
+                                            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Peringatan Cuaca BMKG</div>
+                                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">Terdeteksi cuaca buruk (${w.weather}) di sekitar ${w.region}.</div>
+                                        </div>
+                                    </div>`;
+                                });
+                                
+                                if (data.count > 0) {
+                                    html += `<a href="/superadmin/administration/accounts" style="text-decoration: none; display: block; padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: rgba(59, 130, 246, 0.05); display: flex; gap: 10px; align-items: start; transition: 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.05)'">
+                                        <div style="color: var(--accent);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+                                        <div>
+                                            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Permintaan Akun Petugas</div>
+                                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">Terdapat ${data.count} pengguna baru yang menunggu persetujuan Anda.</div>
+                                        </div>
+                                    </a>`;
+                                }
+                                
+                                notifList.innerHTML = html;
+                            } else {
+                                notifBadge.style.display = 'none';
+                                notifList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px;">Tidak ada notifikasi baru</div>';
+                            }
+                        }
+                    });
+            }
+            
+            fetchNotifications();
+            setInterval(fetchNotifications, 60000);
+            window.refreshNotifications = fetchNotifications;
+        }
+
     </script>
 </body>
 </html>

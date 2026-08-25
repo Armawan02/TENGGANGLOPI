@@ -1018,10 +1018,30 @@
                 let contentHTML = '';
                 
                 const grouped = {};
+                let extremeWeatherDetected = false;
+                window.bmkgNotifs = []; // Reset old notifications
+                
                 cuacaList.forEach(item => {
                     const datePart = item.local_datetime.split(' ')[0];
                     if(!grouped[datePart]) grouped[datePart] = [];
                     grouped[datePart].push(item);
+                    
+                    // Cek cuaca ekstrem untuk hari ini saja
+                    const todayDate = new Date();
+                    const todayStr = todayDate.getFullYear() + '-' + String(todayDate.getMonth() + 1).padStart(2, '0') + '-' + String(todayDate.getDate()).padStart(2, '0');
+                    if (datePart === todayStr) {
+                        const desc = item.weather_desc.toLowerCase();
+                        if (desc.includes('hujan lebat') || desc.includes('badai') || desc.includes('petir') || desc.includes('angin kencang')) {
+                            extremeWeatherDetected = item.weather_desc;
+                            // Hindari duplikat di menu lonceng
+                            if(window.bmkgNotifs.length === 0) {
+                                window.bmkgNotifs.push({
+                                    weather: item.weather_desc,
+                                    region: regionText
+                                });
+                            }
+                        }
+                    }
                 });
                 
                 let isFirst = true;
@@ -1051,6 +1071,13 @@
                 
                 tabsContainer.innerHTML = tabsHTML;
                 container.innerHTML = contentHTML;
+                
+                // Tampilkan toast jika notifikasi aktif dan cuaca buruk
+                const userNotifyBMKG = {{ (Auth::user()->notify_bmkg ?? true) ? 'true' : 'false' }};
+                if (userNotifyBMKG && extremeWeatherDetected) {
+                    showWeatherToast(regionText, extremeWeatherDetected);
+                    if(typeof window.refreshNotifications === 'function') window.refreshNotifications();
+                }
             })
             .catch(err => {
                 container.innerHTML = '<div class="weather-loading">Terjadi kesalahan jaringan saat mengambil data BMKG.</div>';
@@ -1063,6 +1090,33 @@
         btn.classList.add('active');
         document.querySelectorAll('.weather-day-group').forEach(el => el.style.display = 'none');
         document.getElementById(dateId).style.display = 'flex';
+    }
+
+    function showWeatherToast(region, weatherDesc) {
+        if (document.getElementById('weather-toast')) return; // Already showing
+        const toast = document.createElement('div');
+        toast.id = 'weather-toast';
+        toast.style.cssText = 'position:fixed; bottom:30px; right:30px; background:var(--bg-card); border:1px solid var(--danger); border-left: 4px solid var(--danger); padding:15px 20px; border-radius:10px; box-shadow:0 10px 25px -5px rgba(0,0,0,0.2); z-index:9999; display:flex; align-items:center; gap:15px; transform: translateY(100px); opacity: 0; transition: all 0.3s ease-out;';
+        toast.innerHTML = `
+            <div style="color:var(--danger);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
+            <div>
+                <div style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:2px;">Peringatan Cuaca BMKG</div>
+                <div style="font-size:12px; color:var(--text-muted);">Cuaca buruk (${weatherDesc}) terdeteksi di stasiun pemantauan ${region}.</div>
+            </div>
+            <button onclick="this.parentElement.style.opacity='0'; setTimeout(()=>this.parentElement.remove(), 300)" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:0; margin-left:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        `;
+        document.body.appendChild(toast);
+        
+        // Trigger animation
+        setTimeout(() => { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; }, 100);
+        
+        // Auto remove after 10 seconds
+        setTimeout(() => {
+            if(document.getElementById('weather-toast')) {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 10000);
     }
 
     document.addEventListener("DOMContentLoaded", function() {
