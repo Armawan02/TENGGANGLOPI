@@ -767,7 +767,7 @@
                             }
                         }
                         
-                        const isWarning = node.buzzerSignal === 'ON' || (node.waterLevel && node.waterLevel < 20);
+                        const isWarning = node.buzzerSignal === 'ON' || (node.waterLevel && node.waterLevel < 50) || (node.gyroscope && Math.abs(node.gyroscope.y) >= 60) || (node.gyroscope && Math.abs(node.gyroscope.x) >= 60);
                         let statusColor = isWarning ? 'var(--warning)' : 'var(--success)';
                         let statusText = isWarning ? 'Warning' : 'Online';
                         

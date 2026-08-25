@@ -759,9 +759,22 @@
                     nodes.forEach(node => {
                         fleetNodesData[node.id] = node; // Save real data globally
                         
-                        const isWarning = node.buzzerSignal === 'ON' || (node.waterLevel && node.waterLevel < 20);
-                        const statusColor = isWarning ? 'var(--warning)' : 'var(--success)';
-                        const statusText = isWarning ? 'Warning' : 'Online';
+                        let isOffline = false;
+                        if (node.heartbeat) {
+                            let nowUnix = Math.floor(Date.now() / 1000);
+                            if (nowUnix - node.heartbeat > 30) {
+                                isOffline = true;
+                            }
+                        }
+                        
+                        const isWarning = node.buzzerSignal === 'ON' || (node.waterLevel && node.waterLevel < 50) || (node.gyroscope && Math.abs(node.gyroscope.y) >= 60) || (node.gyroscope && Math.abs(node.gyroscope.x) >= 60);
+                        let statusColor = isWarning ? 'var(--warning)' : 'var(--success)';
+                        let statusText = isWarning ? 'Warning' : 'Online';
+                        
+                        if (isOffline) {
+                            statusColor = 'var(--text-muted)';
+                            statusText = 'Offline';
+                        }
                         const aiInfo = isWarning ? 'Al: Butuh Perhatian' : 'Al: Cuaca Aman';
                         
                         const tr = document.createElement('tr');

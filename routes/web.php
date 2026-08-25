@@ -7,6 +7,24 @@ Route::get('/', function () {
     return view('guest.index');
 });
 
+Route::get('/clear-dummy', function(\App\Services\FirebaseService $firebase) {
+    // Hapus semua riwayat log
+    foreach($firebase->getCollection('history_logs') as $log) {
+        if(isset($log['id'])) $firebase->deleteDocument('history_logs', $log['id']);
+    }
+    // Reset data sensor kapal menjadi 0 (jangan hapus kapalnya agar tetap tampil Offline)
+    foreach($firebase->getCollection('fleet') as $f) {
+        if(isset($f['id'])) {
+            $f['waterLevel'] = 0;
+            $f['buzzerSignal'] = 'OFF';
+            $f['gyroscope'] = ['x' => 0, 'y' => 0, 'z' => 0];
+            $f['heartbeat'] = 0; // Pastikan status offline
+            $firebase->saveDocument('fleet', $f, $f['id']);
+        }
+    }
+    return "Dummy Data Cleared & Reset!";
+});
+
 Route::get('/setup-database', function () {
     \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--seed' => true]);
     return "Database berhasil di-reset dan akun bawaan berhasil dibuat!";
