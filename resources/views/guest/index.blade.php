@@ -528,7 +528,7 @@
             <img src="{{ asset('logo.png') }}" alt="TENGGANG LOPI" class="hero-logo">
             <h2>INOVASI INFRASTRUKTUR MARITIM CERDAS<br>BERBASIS <span>EDGE-AI</span> MICRO-CLIMATE DETECTION DAN <span>LORA</span> UNTUK MITIGASI LAKA LAUT</h2>
             
-            <a href="{{ route('login') }}" class="hero-btn">
+            <a href="{{ route('demo.login') }}" class="hero-btn">
                 Masuk ke Base Station
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 5px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </a>

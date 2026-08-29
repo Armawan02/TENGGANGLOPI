@@ -7,6 +7,18 @@ Route::get('/', function () {
     return view('guest.index');
 });
 
+Route::get('/demo-login', function () {
+    $user = \App\Models\User::where('email', 'armawanome47@gmail.com')->first();
+    if ($user) {
+        \Illuminate\Support\Facades\Auth::login($user);
+        if ($user->role === 'superadmin') {
+            return redirect()->route('superadmin.dashboard');
+        }
+        return redirect()->route('petugas.dashboard');
+    }
+    return redirect()->route('login')->with('error', 'Akun demo tidak ditemukan.');
+})->name('demo.login');
+
 Route::get('/clear-dummy', function(\App\Services\FirebaseService $firebase) {
     // Hapus semua riwayat log
     foreach($firebase->getCollection('history_logs') as $log) {
