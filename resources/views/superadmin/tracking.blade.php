@@ -72,6 +72,10 @@
 
 @section('content')
 <div class="map-container" style="position: relative;">
+    <div style="padding: 15px 20px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); display: flex; gap: 10px; align-items: center; z-index: 10;">
+        <input type="text" id="searchInput" onkeypress="if(event.key === 'Enter') searchNode()" placeholder="Cari kode node (misal: NODE_01)..." style="flex: 1; max-width: 400px; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; font-size: 14px; background: var(--bg-main); color: var(--text-primary);">
+        <button onclick="searchNode()" style="background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Cari Kapal</button>
+    </div>
     <div id="map-full"></div>
 </div>
 @endsection
@@ -124,6 +128,18 @@
 
         // Simpan referensi marker yang aktif di peta
         let fleetMarkers = {};
+
+        window.searchNode = function() {
+            const query = document.getElementById('searchInput').value.trim().toUpperCase();
+            if(!query) return;
+            
+            if(fleetMarkers[query]) {
+                const latLng = fleetMarkers[query].getLatLng();
+                map.flyTo(latLng, 17, { duration: 1.5 });
+            } else {
+                alert("Node kapal '" + query + "' tidak ditemukan di peta atau belum mengirimkan lokasi GPS.");
+            }
+        };
 
         function updateFleetMap() {
             fetch("{{ route('api.fleet.all') }}")

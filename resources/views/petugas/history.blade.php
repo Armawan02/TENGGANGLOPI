@@ -73,14 +73,14 @@
     </div>
     
     <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <input type="date" style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; font-family: 'Outfit'; color-scheme: dark;">
-        <select style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; font-family: 'Outfit';">
-            <option>Semua Status</option>
-            <option>CRITICAL</option>
-            <option>WARNING</option>
-            <option>INFO</option>
+        <input type="date" id="filterDate" style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; font-family: 'Outfit'; color-scheme: dark;">
+        <select id="filterStatus" style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; font-family: 'Outfit';">
+            <option value="">Semua Status</option>
+            <option value="CRITICAL">CRITICAL</option>
+            <option value="WARNING">WARNING</option>
+            <option value="INFO">INFO</option>
         </select>
-        <button style="background: var(--accent); color: var(--text-primary); border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Filter Log</button>
+        <button onclick="fetchHistoryLogs()" style="background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Filter Log</button>
     </div>
 
     <div class="table-container">
@@ -107,7 +107,14 @@
     });
 
     function fetchHistoryLogs() {
-        fetch("{{ route('api.history.logs') }}")
+        const dateVal = document.getElementById('filterDate').value;
+        const statusVal = document.getElementById('filterStatus').value;
+        
+        let url = new URL("{{ route('api.history.logs') }}", window.location.origin);
+        if(dateVal) url.searchParams.append('date', dateVal);
+        if(statusVal) url.searchParams.append('status', statusVal);
+
+        fetch(url)
             .then(res => res.json())
             .then(response => {
                 if (response.status === 'success') {
@@ -122,18 +129,35 @@
                     response.data.forEach(log => {
                         const tr = document.createElement('tr');
                         
+                        let logType = log.type || 'INFO';
+                        
+                        // Mapping custom types to UI levels
+                        let level = 'INFO';
+                        if (logType === 'Capsizing') level = 'CRITICAL';
+                        else if (logType === 'Leak' || logType === 'Weather Warning') level = 'WARNING';
+                        else level = logType.toUpperCase();
+                        
                         let badgeClass = 'info';
                         let badgeColor = 'var(--accent)';
-                        if(log.level === 'Critical') { badgeClass = 'danger'; badgeColor = 'var(--danger)'; }
-                        else if(log.level === 'Warning') { badgeClass = 'warning'; badgeColor = 'var(--warning)'; }
-                        else if(log.level === 'Recovered') { badgeClass = 'success'; badgeColor = 'var(--success)'; }
+                        if(level === 'CRITICAL') { badgeClass = 'danger'; badgeColor = 'var(--danger)'; }
+                        else if(level === 'WARNING') { badgeClass = 'warning'; badgeColor = 'var(--warning)'; }
+                        else if(level === 'RECOVERED' || level === 'SUCCESS') { badgeClass = 'success'; badgeColor = 'var(--success)'; }
+                        
+                        let timeStr = '-';
+                        if (log.timestamp) {
+                            const date = new Date(log.timestamp * 1000);
+                            timeStr = date.toLocaleString('id-ID', {
+                                year: 'numeric', month: '2-digit', day: '2-digit',
+                                hour: '2-digit', minute:'2-digit', second:'2-digit'
+                            });
+                        }
                         
                         tr.innerHTML = `
-                            <td style="color: var(--text-muted);">${log.time || '-'}</td>
+                            <td style="color: var(--text-muted);">${timeStr}</td>
                             <td style="font-weight: 600;">${log.node_id || '-'}</td>
                             <td>${log.message || '-'}</td>
                             <td style="text-align: right;">
-                                <span class="badge ${badgeClass}"><span style="color:${badgeColor}">●</span> ${log.level ? log.level.toUpperCase() : 'INFO'}</span>
+                                <span class="badge ${badgeClass}"><span style="color:${badgeColor}">●</span> ${level}</span>
                             </td>
                         `;
                         tbody.appendChild(tr);

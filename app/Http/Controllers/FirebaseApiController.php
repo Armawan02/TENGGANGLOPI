@@ -110,23 +110,55 @@ class FirebaseApiController extends Controller
     /**
      * Mengambil riwayat log kejadian terbaru
      */
-    public function getRecentLogs()
+    public function getRecentLogs(\Illuminate\Http\Request $request)
     {
         try {
-            // Karena tidak bisa orderBy kompleks tanpa index di Firestore jika query rumit,
-            // kita ambil semua log (limitasi dilakukan di frontend atau backend array slice)
             $logs = $this->firebaseService->getCollection('history_logs');
             
-            // Sort by time descending (asumsi ada field timestamp)
+            $dateFilter = $request->query('date');
+            $statusFilter = $request->query('status');
+            
+            // Sort by time descending
             usort($logs, function($a, $b) {
                 $timeA = $a['timestamp'] ?? 0;
                 $timeB = $b['timestamp'] ?? 0;
                 return $timeB <=> $timeA;
             });
             
+            // Filtering
+            if ($dateFilter || ($statusFilter && $statusFilter !== 'Semua Status')) {
+                $logs = array_filter($logs, function($log) use ($dateFilter, $statusFilter) {
+                    $passDate = true;
+                    $passStatus = true;
+                    
+                    if ($dateFilter) {
+                        $logDate = isset($log['timestamp']) ? date('Y-m-d', $log['timestamp']) : '';
+                        $passDate = ($logDate === $dateFilter);
+                    }
+                    
+                    if ($statusFilter && $statusFilter !== 'Semua Status') {
+                        $logType = $log['type'] ?? 'INFO';
+                        
+                        $mappedLevel = 'INFO';
+                        if ($logType === 'Capsizing') {
+                            $mappedLevel = 'CRITICAL';
+                        } elseif (in_array($logType, ['Leak', 'Weather Warning'])) {
+                            $mappedLevel = 'WARNING';
+                        }
+                        
+                        $passStatus = ($mappedLevel === $statusFilter);
+                    }
+                    
+                    return $passDate && $passStatus;
+                });
+                
+                // reset array keys
+                $logs = array_values($logs);
+            }
+            
             return response()->json([
                 'status' => 'success',
-                'data' => array_slice($logs, 0, 10) // Ambil 10 terbaru
+                'data' => array_slice($logs, 0, 50) // Tampilkan hingga 50
             ]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
