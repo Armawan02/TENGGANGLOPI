@@ -301,14 +301,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                     Edit
                 </button>
-                <form action="{{ route('superadmin.administration.accounts.destroy', $account['id']) }}" method="POST" style="flex:1;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn-action btn-revoke">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        Cabut
-                    </button>
-                </form>
+                <button type="button" class="btn-action btn-revoke" onclick="openDeleteModal('{{ $account['id'] }}', '{{ $account['name'] ?? 'Akun ini' }}')" style="flex:1;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Cabut
+                </button>
             </div>
         </div>
     </div>
@@ -422,6 +418,27 @@
     </div>
 </div>
 
+<!-- Modal Konfirmasi Hapus -->
+<div class="modal" id="deleteModal">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <div style="color: var(--danger); margin-bottom: 15px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        </div>
+        <h3 style="font-size: 18px; color: var(--text-primary); margin-bottom: 10px;">Cabut Akses Akun?</h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 25px;">
+            Anda yakin ingin mencabut akses untuk <strong id="delete_name_label" style="color: var(--text-primary);"></strong>? Tindakan ini tidak dapat dibatalkan.
+        </p>
+        <form id="deleteForm" method="POST">
+            @csrf
+            @method('DELETE')
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn-cancel" onclick="closeModal('deleteModal')" style="flex: 1;">Batal</button>
+                <button type="submit" class="btn-primary" style="background: var(--danger); flex: 1; justify-content: center;">Ya, Cabut</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function openModal(id) {
         document.getElementById(id).classList.add('active');
@@ -444,6 +461,12 @@
         document.getElementById('resetForm').action = "/superadmin/administration/accounts/" + id + "/reset-password";
         document.getElementById('reset_name_label').innerText = name;
         openModal('resetModal');
+    }
+
+    function openDeleteModal(id, name) {
+        document.getElementById('deleteForm').action = "/superadmin/administration/accounts/" + id;
+        document.getElementById('delete_name_label').innerText = name;
+        openModal('deleteModal');
     }
     
     // Close modal when clicking outside
