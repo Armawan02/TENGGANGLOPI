@@ -600,6 +600,10 @@
     <section id="pemantauan" class="features-section" style="background-color: #f1f5f9;">
         <h2 class="section-title">Live <span>Pemantauan</span> Publik</h2>
         <div style="max-width: 1200px; margin: 0 auto; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <div style="padding: 15px 20px; background: #fff; border-bottom: 1px solid #e2e8f0; display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="searchInput" onkeypress="if(event.key === 'Enter') searchNode()" placeholder="Cari kode node (misal: NODE_01)..." style="flex: 1; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 14px; font-family: inherit;">
+                <button onclick="searchNode()" style="background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--primary-hover)'" onmouseout="this.style.backgroundColor='var(--primary)'">Cari Kapal</button>
+            </div>
             <div id="public-map" style="height: 500px; width: 100%; z-index: 1;"></div>
             <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; background: #fff; border-top: 1px solid #e2e8f0;">
                 <div>
@@ -806,16 +810,35 @@
                     attribution: '&copy; Google Maps'
                 }).addTo(publicMap);
 
-                var shipIcon = L.divIcon({
-                    html: `<div style="background:#2563eb; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 10px rgba(0,0,0,0.5);">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="5" r="3"></circle><line x1="12" y1="22" x2="12" y2="8"></line><path d="M5 12H2a10 10 0 0 0 20 0h-3"></path></svg>
-                           </div>`,
-                    className: 'custom-ship-icon',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 12]
-                });
+                function createShipIcon(name, isOffline) {
+                    let color = isOffline ? '#ef4444' : '#10b981';
+                    return L.divIcon({
+                        html: `<div style="display:flex; flex-direction:column; align-items:center;">
+                                <div style="background:${color}; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 10px rgba(0,0,0,0.5);">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="5" r="3"></circle><line x1="12" y1="22" x2="12" y2="8"></line><path d="M5 12H2a10 10 0 0 0 20 0h-3"></path></svg>
+                                </div>
+                                <div style="margin-top:4px; background:rgba(255,255,255,0.95); padding:2px 8px; border-radius:4px; font-size:11px; font-weight:800; color:#1e293b; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; font-family: inherit;">${name}</div>
+                               </div>`,
+                        className: 'custom-ship-icon',
+                        iconSize: [40, 50],
+                        iconAnchor: [20, 12]
+                    });
+                }
 
                 let publicMarkers = {};
+
+                window.searchNode = function() {
+                    const query = document.getElementById('searchInput').value.trim().toUpperCase();
+                    if(!query) return;
+                    
+                    if(publicMarkers[query]) {
+                        const latLng = publicMarkers[query].getLatLng();
+                        publicMap.flyTo(latLng, 16, { duration: 1.5 });
+                        publicMarkers[query].openTooltip();
+                    } else {
+                        alert("Node kapal '" + query + "' tidak ditemukan di peta atau sedang offline.");
+                    }
+                };
 
                 function updatePublicMap() {
                     fetch("/api/fleet/public")
@@ -831,17 +854,20 @@
                                     
                                     let statusText = isOffline ? 'Terputus 🔴' : 'Terhubung 🟢';
                                     let tooltipContent = `
-                                        <div style="font-weight:700; color:#1e293b; font-size:12px;">${node.vesselName}</div>
-                                        <div style="color:#64748b; font-size:11px; font-weight:600;">Status: ${statusText}</div>
+                                        <div style="font-weight:700; color:#1e293b; font-size:12px; font-family: inherit;">${node.id}</div>
+                                        <div style="color:#64748b; font-size:11px; font-weight:600; font-family: inherit;">Status: ${statusText}</div>
                                     `;
 
                                     if (node.coordinates && node.coordinates.lat !== 0 && node.coordinates.lng !== 0) {
                                         let newLatLng = new L.LatLng(node.coordinates.lat, node.coordinates.lng);
+                                        let currentIcon = createShipIcon(node.vesselName, isOffline);
+
                                         if (!publicMarkers[node.id]) {
-                                            publicMarkers[node.id] = L.marker(newLatLng, {icon: shipIcon}).addTo(publicMap)
-                                                .bindTooltip(tooltipContent, {direction: 'top'});
+                                            publicMarkers[node.id] = L.marker(newLatLng, {icon: currentIcon}).addTo(publicMap)
+                                                .bindTooltip(tooltipContent, {direction: 'top', offset: [0, -12]});
                                         } else {
                                             publicMarkers[node.id].setLatLng(newLatLng);
+                                            publicMarkers[node.id].setIcon(currentIcon);
                                             publicMarkers[node.id].setTooltipContent(tooltipContent);
                                         }
                                     }
