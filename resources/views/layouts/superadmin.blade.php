@@ -729,46 +729,62 @@
             });
             
             function fetchNotifications() {
-                fetch('/api/notifications/pending-users')
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            const weatherNotifs = window.bmkgNotifs || [];
-                            const totalCount = data.count + weatherNotifs.length;
-                            
-                            if (totalCount > 0) {
-                                notifBadge.style.display = 'block';
-                                notifBadge.innerText = totalCount > 9 ? '9+' : totalCount;
-                                
-                                let html = '';
-                                
-                                weatherNotifs.forEach(w => {
-                                    html += `<div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: rgba(239, 68, 68, 0.05); display: flex; gap: 10px; align-items: start;">
-                                        <div style="color: var(--danger);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
-                                        <div>
-                                            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Peringatan Cuaca BMKG</div>
-                                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">Terdeteksi cuaca buruk (${w.weather}) di sekitar ${w.region}.</div>
-                                        </div>
-                                    </div>`;
-                                });
-                                
-                                if (data.count > 0) {
-                                    html += `<a href="/superadmin/administration/accounts" style="text-decoration: none; display: block; padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: rgba(59, 130, 246, 0.05); display: flex; gap: 10px; align-items: start; transition: 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.05)'">
-                                        <div style="color: var(--accent);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
-                                        <div>
-                                            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Permintaan Akun Petugas</div>
-                                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">Terdapat ${data.count} pengguna baru yang menunggu persetujuan Anda.</div>
-                                        </div>
-                                    </a>`;
-                                }
-                                
-                                notifList.innerHTML = html;
-                            } else {
-                                notifBadge.style.display = 'none';
-                                notifList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px;">Tidak ada notifikasi baru</div>';
-                            }
+                Promise.all([
+                    fetch('/api/notifications/pending-users').then(res => res.json()).catch(() => ({count:0, data:[]})),
+                    fetch('/api/notifications/alerts').then(res => res.json()).catch(() => ({count:0, data:[]}))
+                ]).then(([pendingRes, alertRes]) => {
+                    const weatherNotifs = window.bmkgNotifs || [];
+                    const pendingCount = pendingRes.count || 0;
+                    const alertCount = alertRes.count || 0;
+                    const totalCount = pendingCount + alertCount + weatherNotifs.length;
+                    
+                    if (totalCount > 0) {
+                        notifBadge.style.display = 'block';
+                        notifBadge.innerText = totalCount > 9 ? '9+' : totalCount;
+                        
+                        let html = '';
+
+                        // 1. SOS Alerts
+                        if (alertCount > 0) {
+                            alertRes.data.forEach(alert => {
+                                html += `<a href="/superadmin/history" style="text-decoration: none; display: block; padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: rgba(239, 68, 68, 0.1); display: flex; gap: 10px; align-items: start; transition: 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">
+                                    <div style="color: var(--danger);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 700; color: var(--danger);">${alert.type} - ${alert.node_id || 'Unknown Node'}</div>
+                                        <div style="font-size: 11px; color: var(--text-primary); margin-top: 3px;">${alert.message}</div>
+                                    </div>
+                                </a>`;
+                            });
                         }
-                    });
+                        
+                        // 2. Weather Notifs
+                        weatherNotifs.forEach(w => {
+                            html += `<div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: rgba(245, 158, 11, 0.05); display: flex; gap: 10px; align-items: start;">
+                                <div style="color: var(--warning);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Peringatan Cuaca BMKG</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">Terdeteksi cuaca buruk (${w.weather}) di sekitar ${w.region}.</div>
+                                </div>
+                            </div>`;
+                        });
+                        
+                        // 3. Pending Users
+                        if (pendingCount > 0) {
+                            html += `<a href="/superadmin/administration/accounts" style="text-decoration: none; display: block; padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: rgba(59, 130, 246, 0.05); display: flex; gap: 10px; align-items: start; transition: 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.05)'">
+                                <div style="color: var(--accent);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Permintaan Akun Petugas</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">Terdapat ${pendingCount} pengguna baru yang menunggu persetujuan Anda.</div>
+                                </div>
+                            </a>`;
+                        }
+                        
+                        notifList.innerHTML = html;
+                    } else {
+                        notifBadge.style.display = 'none';
+                        notifList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px;">Tidak ada notifikasi baru</div>';
+                    }
+                });
             }
             
             fetchNotifications();

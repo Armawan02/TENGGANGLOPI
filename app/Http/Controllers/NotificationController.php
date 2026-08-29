@@ -49,4 +49,31 @@ class NotificationController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
+
+    public function getActiveAlerts()
+    {
+        try {
+            $logs = $this->firebaseService->getCollection('history_logs');
+            $activeAlerts = [];
+            
+            $oneDayAgo = time() - (24 * 3600);
+            foreach ($logs as $log) {
+                if (isset($log['type']) && $log['type'] === 'Automated SOS' && isset($log['timestamp']) && $log['timestamp'] > $oneDayAgo) {
+                    $isResolved = $log['is_resolved'] ?? false;
+                    if (!$isResolved) {
+                        $activeAlerts[] = $log;
+                    }
+                }
+            }
+            
+            return response()->json([
+                'status' => 'success',
+                'count' => count($activeAlerts),
+                'data' => $activeAlerts
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('getActiveAlerts Error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
 }

@@ -182,4 +182,5 @@ Route::middleware(['auth'])->prefix('api/history')->group(function () {
 
 Route::middleware(['auth'])->prefix('api/notifications')->group(function () {
     Route::get('/pending-users', [\App\Http\Controllers\NotificationController::class, 'getPendingUsers'])->name('api.notifications.pending');
+    Route::get('/alerts', [\App\Http\Controllers\NotificationController::class, 'getActiveAlerts'])->name('api.notifications.alerts');
 });

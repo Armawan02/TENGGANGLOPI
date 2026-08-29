@@ -112,18 +112,18 @@ class TelemetryController extends Controller
 
         // 1. Capsizing Check (Roll/Pitch anomaly)
         if (abs($roll) > 60 || abs($pitch) > 60) {
-            $alertType = 'Capsizing';
-            $alertMessage = 'Critical tilt detected! Potential capsizing. Roll: ' . $roll . ', Pitch: ' . $pitch;
+            $alertType = 'Automated SOS';
+            $alertMessage = 'Kapal Terbalik! Kemiringan kritis terdeteksi (Roll: ' . $roll . ', Pitch: ' . $pitch . ').';
         }
-        // 2. Leak Check (Water level rising in hull)
-        elseif ($waterLevel > 50) {
-            $alertType = 'Leak';
-            $alertMessage = 'High water level detected in hull (' . $waterLevel . ' cm). Possible leak.';
+        // 2. Leak Check (Semakin rendah jarak air ke sensor, berarti air semakin naik mengisi lambung)
+        elseif ($waterLevel > 0 && $waterLevel < 20) {
+            $alertType = 'Automated SOS';
+            $alertMessage = 'Bahaya Kebocoran! Genangan air sangat tinggi (Jarak sensor sisa ' . $waterLevel . ' cm).';
         }
         // 3. Severe Weather Check
         elseif (strtolower($nodeData['weather_condition'] ?? '') === 'bad storm') {
             $alertType = 'Weather Warning';
-            $alertMessage = 'Edge-AI detected bad storm conditions.';
+            $alertMessage = 'Edge-AI mendeteksi anomali cuaca badai di sekitar kapal.';
         }
 
         if ($alertType) {

@@ -140,7 +140,7 @@ class FirebaseApiController extends Controller
                         $logType = $log['type'] ?? 'INFO';
                         
                         $mappedLevel = 'INFO';
-                        if ($logType === 'Capsizing') {
+                        if (in_array($logType, ['Capsizing', 'Automated SOS'])) {
                             $mappedLevel = 'CRITICAL';
                         } elseif (in_array($logType, ['Leak', 'Weather Warning'])) {
                             $mappedLevel = 'WARNING';
