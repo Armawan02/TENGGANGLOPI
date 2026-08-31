@@ -8,7 +8,7 @@ Route::get('/', function () {
 });
 
 Route::get('/demo-login', function () {
-    $user = \App\Models\User::where('email', 'armawanome47@gmail.com')->first();
+    $user = \App\Models\User::where('email', 'like', '%armawan%')->first();
     if ($user) {
         \Illuminate\Support\Facades\Auth::login($user);
         if ($user->role === 'superadmin') {
@@ -16,7 +16,7 @@ Route::get('/demo-login', function () {
         }
         return redirect()->route('petugas.dashboard');
     }
-    return redirect()->route('login')->with('error', 'Akun demo tidak ditemukan.');
+    return 'Gagal Login: Akun armawan tidak ditemukan. Daftar email di database: ' . \App\Models\User::pluck('email')->implode(', ');
 })->name('demo.login');
 
 Route::get('/clear-dummy', function(\App\Services\FirebaseService $firebase) {

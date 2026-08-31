@@ -1156,12 +1156,21 @@
                         return;
                     }
 
-                    response.data.forEach(log => {
+                    // Ambil maksimal 10 log terbaru (data dari API sudah diurutkan newest-first/descending)
+                    const limitedData = response.data.slice(0, 10);
+
+                    limitedData.forEach(log => {
                         const tr = document.createElement('tr');
                         const statusColor = log.level === 'Critical' ? 'var(--danger)' : (log.level === 'Warning' ? 'var(--warning)' : 'var(--success)');
                         
+                        let timeStr = log.time || '-';
+                        if (!log.time && log.timestamp) {
+                            const date = new Date(log.timestamp * 1000);
+                            timeStr = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute:'2-digit', second:'2-digit' });
+                        }
+                        
                         tr.innerHTML = `
-                            <td>${log.time || '-'}</td>
+                            <td>${timeStr}</td>
                             <td>${log.message || '-'}</td>
                             <td style="text-align: right; color: ${statusColor}; font-weight: 600;">${log.level || 'Info'}</td>
                         `;
