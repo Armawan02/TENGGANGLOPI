@@ -7,16 +7,30 @@ Route::get('/', function () {
     return view('guest.index');
 });
 
-Route::get('/demo-login', function () {
-    $user = \App\Models\User::where('email', 'like', '%armawan%')->first();
-    if ($user) {
-        \Illuminate\Support\Facades\Auth::login($user);
-        if ($user->role === 'superadmin') {
+Route::get('/demo-login', function (\App\Services\FirebaseService $firebase) {
+    $users = $firebase->getCollection('users');
+    
+    $foundUser = null;
+    $emails = [];
+    foreach ($users as $u) {
+        $email = $u['email'] ?? '';
+        $emails[] = $email;
+        if (str_contains(strtolower($email), 'armawan')) {
+            $foundUser = $u;
+            break;
+        }
+    }
+    
+    if ($foundUser) {
+        $userModel = new \App\Models\User($foundUser, $foundUser['id'] ?? null);
+        \Illuminate\Support\Facades\Auth::login($userModel);
+        if (($foundUser['role'] ?? '') === 'superadmin') {
             return redirect()->route('superadmin.dashboard');
         }
         return redirect()->route('petugas.dashboard');
     }
-    return 'Gagal Login: Akun armawan tidak ditemukan. Daftar email di database: ' . \App\Models\User::pluck('email')->implode(', ');
+    
+    return 'Gagal Login: Akun armawan tidak ditemukan. Daftar email di database: ' . implode(', ', $emails);
 })->name('demo.login');
 
 Route::get('/clear-dummy', function(\App\Services\FirebaseService $firebase) {
