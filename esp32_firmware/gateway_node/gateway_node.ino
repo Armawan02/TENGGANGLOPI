@@ -120,7 +120,10 @@ void loop() {
 
       } else {
         Serial.print("Error code: ");
-        Serial.println(httpResponseCode);
+        Serial.print(httpResponseCode);
+        Serial.print(" (");
+        Serial.print(http.errorToString(httpResponseCode));
+        Serial.println(")");
       }
       
       // Tutup koneksi
