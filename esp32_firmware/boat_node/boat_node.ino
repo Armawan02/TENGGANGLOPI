@@ -175,9 +175,7 @@ void loop() {
                        "\"Cuaca\":\"" + statusCuaca + "\","
                        "\"JarakAir\":" + String(jarakAir, 1) + ","
                        "\"Bocor\":\"" + statusKebocoran + "\","
-                       "\"Kemiringan\":" + String(kemiringanMaks, 1) + ","
-                       "\"Roll\":" + String(roll, 1) + ","
-                       "\"Pitch\":" + String(pitch, 1) + ","
+                       "\"Kemiringan\":" + String(kemiringanMaks, 0) + ","
                        "\"Stabilitas\":\"" + statusStabilitas + "\","
                        "\"Lat\":" + String(lat, 6) + ","
                        "\"Lng\":" + String(lng, 6) + "}";

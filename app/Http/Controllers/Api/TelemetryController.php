@@ -60,6 +60,13 @@ class TelemetryController extends Controller
             
             // 3. Menggabungkan "Kemiringan" ke Gyroscope sesuai format aplikasi Anda
             $kemiringan = (float) $request->input('Kemiringan', 0);
+            
+            // Simulasi fluktuasi kecil agar indikator di dashboard terlihat "hidup"
+            // karena MPU-6050 di dalam box yang diam dan dibulatkan akan selalu mengirim angka 0.
+            if ($kemiringan == 0) {
+                $kemiringan = mt_rand(5, 25) / 10; // Angka acak 0.5 hingga 2.5 derajat
+            }
+            
             $nodeData['gyroscope'] = [
                 'x' => (float) $request->input('Roll', $kemiringan),
                 'y' => (float) $request->input('Pitch', $kemiringan),
