@@ -582,7 +582,7 @@
                 <div style="position: relative; width: 120px; margin: 0 auto;">
                     <svg class="gauge-svg" viewBox="0 0 200 100">
                         <path class="gauge-bg" d="M 10 90 A 80 80 0 0 1 190 90" />
-                        <path class="gauge-fill" id="mpuGaugeVal" d="M 10 90 A 80 80 0 0 1 190 90" stroke-dasharray="283" stroke-dashoffset="283" />
+                        <path class="gauge-val" id="mpuGaugeVal" d="M 10 90 A 80 80 0 0 1 190 90" stroke-dasharray="283" stroke-dashoffset="283" />
                     </svg>
                     <!-- Animated Ship Icon -->
                     <div style="position: absolute; bottom: 15px; left: 50%; margin-left: -18px;">
