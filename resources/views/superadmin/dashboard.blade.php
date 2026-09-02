@@ -587,9 +587,8 @@
                     <div class="gauge-text" id="val-roll">- - &deg;</div>
                     <div class="gauge-label">ROLL ANGLE</div>
                 </div>
-                <div style="display:flex; justify-content:space-around; width: 100%; margin-top: 15px; font-weight:700; font-size:12px;">
-                    <div style="text-align: center;"><div style="font-size:10px; color:var(--text-muted); font-weight: 500;">PITCH</div><span id="val-pitch">- - &deg;</span></div>
-                    <div style="text-align: center;"><div style="font-size:10px; color:var(--text-muted); font-weight: 500;">YAW</div><span id="val-yaw">- - &deg;</span></div>
+                <div style="display:flex; justify-content:center; width: 100%; margin-top: 15px; font-weight:700; font-size:12px;">
+                    <div style="text-align: center;"><div style="font-size:10px; color:var(--text-muted); font-weight: 500;">PITCH ANGLE</div><span id="val-pitch">- - &deg;</span></div>
                 </div>
             </div>
             <div class="sensor-status" id="status-mpu">Sensor Mati (Offline)</div>
@@ -845,11 +844,9 @@
         // 1. MPU6050
         let roll = node.gyroscope?.x ?? 0;
         let pitch = node.gyroscope?.y ?? 0;
-        let yaw = node.gyroscope?.z ?? 0;
         
         document.getElementById('val-roll').innerHTML = roll + '&deg;';
         document.getElementById('val-pitch').innerHTML = pitch + '&deg;';
-        document.getElementById('val-yaw').innerHTML = yaw + '&deg;';
         
         let maxDash = 283;
         let fill = (Math.abs(roll) / 180) * maxDash;
@@ -859,8 +856,8 @@
         let mpuColor = 'var(--success)';
         document.getElementById('mpuGaugeVal').classList.remove('status-blink-red');
 
-        if (Math.abs(roll) >= 90) { mpuStatus = 'TERBALIK'; mpuColor = 'var(--danger)'; document.getElementById('mpuGaugeVal').classList.add('status-blink-red'); }
-        else if (Math.abs(roll) >= 60) { mpuStatus = 'WASPADA'; mpuColor = 'var(--warning)'; }
+        if (Math.abs(roll) >= 60 || Math.abs(pitch) >= 60) { mpuStatus = 'TERBALIK'; mpuColor = 'var(--danger)'; document.getElementById('mpuGaugeVal').classList.add('status-blink-red'); }
+        else if (Math.abs(roll) >= 30 || Math.abs(pitch) >= 30) { mpuStatus = 'WASPADA'; mpuColor = 'var(--warning)'; }
         
         if (isOffline) {
             mpuStatus = 'Sensor Mati (Offline)';
@@ -868,7 +865,6 @@
             document.getElementById('mpuGaugeVal').classList.remove('status-blink-red');
             document.getElementById('val-roll').innerHTML = '- - &deg;';
             document.getElementById('val-pitch').innerHTML = '- - &deg;';
-            document.getElementById('val-yaw').innerHTML = '- - &deg;';
             document.getElementById('mpuGaugeVal').style.strokeDashoffset = 283;
         }
         
