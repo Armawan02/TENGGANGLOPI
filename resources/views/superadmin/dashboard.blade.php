@@ -485,9 +485,12 @@
 
 <!-- Log Panel -->
 <div class="log-panel">
-    <div class="log-panel-header">
-        <div style="width: 12px; height: 12px; background: var(--danger); border-radius: 50%; box-shadow: 0 0 10px var(--danger);"></div>
-        PUSAT INFORMASI DARURAT & LOG EVENT
+    <div class="log-panel-header" style="justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 12px; height: 12px; background: var(--danger); border-radius: 50%; box-shadow: 0 0 10px var(--danger);"></div>
+            PUSAT INFORMASI DARURAT & LOG EVENT
+        </div>
+        <a href="{{ route('superadmin.history') }}" style="font-size: 11px; padding: 6px 12px; background: rgba(0,0,0,0.03); color: var(--text-primary); border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); text-transform: none; font-weight: 500; letter-spacing: 0; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.08)'" onmouseout="this.style.background='rgba(0,0,0,0.03)'">Lihat Semua</a>
     </div>
     <div style="overflow-x: auto;">
         <table class="log-table">
@@ -1156,8 +1159,8 @@
                         return;
                     }
 
-                    // Ambil maksimal 10 log terbaru (data dari API sudah diurutkan newest-first/descending)
-                    const limitedData = response.data.slice(0, 10);
+                    // Ambil maksimal 5 log terbaru (data dari API sudah diurutkan newest-first/descending)
+                    const limitedData = response.data.slice(0, 5);
 
                     limitedData.forEach(log => {
                         const tr = document.createElement('tr');
