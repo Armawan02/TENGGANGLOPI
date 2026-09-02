@@ -61,8 +61,8 @@ class TelemetryController extends Controller
             // 3. Menggabungkan "Kemiringan" ke Gyroscope sesuai format aplikasi Anda
             $kemiringan = (float) $request->input('Kemiringan', 0);
             $nodeData['gyroscope'] = [
-                'x' => $kemiringan,
-                'y' => $kemiringan,
+                'x' => (float) $request->input('Roll', $kemiringan),
+                'y' => (float) $request->input('Pitch', $kemiringan),
                 'z' => 0
             ];
             
