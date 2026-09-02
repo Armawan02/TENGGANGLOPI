@@ -579,16 +579,24 @@
                 Kemiringan (MPU-6050)
             </div>
             <div class="sensor-value-area" style="align-items: center;">
-                <div class="gauge-container">
+                <div style="position: relative; width: 120px; margin: 0 auto;">
                     <svg class="gauge-svg" viewBox="0 0 200 100">
-                        <path class="gauge-bg" d="M 10 100 A 90 90 0 0 1 190 100"></path>
-                        <path class="gauge-val" id="mpuGaugeVal" d="M 10 100 A 90 90 0 0 1 190 100"></path>
+                        <path class="gauge-bg" d="M 10 90 A 80 80 0 0 1 190 90" />
+                        <path class="gauge-fill" id="mpuGaugeVal" d="M 10 90 A 80 80 0 0 1 190 90" stroke-dasharray="283" stroke-dashoffset="283" />
                     </svg>
-                    <div class="gauge-text" id="val-roll">- - &deg;</div>
-                    <div class="gauge-label">ROLL ANGLE</div>
+                    <!-- Animated Ship Icon -->
+                    <div style="position: absolute; bottom: 15px; left: 50%; margin-left: -18px;">
+                        <div id="boat-illustration" style="font-size: 35px; color: var(--primary); transition: transform 0.5s ease; transform-origin: bottom center;">
+                            <i class="fas fa-ship"></i>
+                        </div>
+                    </div>
                 </div>
-                <div style="display:flex; justify-content:center; width: 100%; margin-top: 15px; font-weight:700; font-size:12px;">
-                    <div style="text-align: center;"><div style="font-size:10px; color:var(--text-muted); font-weight: 500;">PITCH ANGLE</div><span id="val-pitch">- - &deg;</span></div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <div style="font-size: 24px; font-weight: 700; color: var(--text-dark);" id="val-roll">- - &deg;</div>
+                    <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px;">SUDUT KEMIRINGAN</div>
+                </div>
+                <div style="display:flex; justify-content:center; width: 100%; margin-top: 10px; font-weight:700; font-size:12px;">
+                    <div style="text-align: center;"><div style="font-size:10px; color:var(--text-muted); font-weight: 500;">PITCH (DEPAN/BELAKANG)</div><span id="val-pitch">- - &deg;</span></div>
                 </div>
             </div>
             <div class="sensor-status" id="status-mpu">Sensor Mati (Offline)</div>
@@ -859,6 +867,13 @@
         if (Math.abs(roll) >= 60 || Math.abs(pitch) >= 60) { mpuStatus = 'TERBALIK'; mpuColor = 'var(--danger)'; document.getElementById('mpuGaugeVal').classList.add('status-blink-red'); }
         else if (Math.abs(roll) >= 30 || Math.abs(pitch) >= 30) { mpuStatus = 'WASPADA'; mpuColor = 'var(--warning)'; }
         
+        // Rotate and color the boat illustration
+        const boatIcon = document.getElementById('boat-illustration');
+        if (boatIcon) {
+            boatIcon.style.transform = `rotate(${roll}deg)`;
+            boatIcon.style.color = mpuColor;
+        }
+
         if (isOffline) {
             mpuStatus = 'Sensor Mati (Offline)';
             mpuColor = 'var(--text-muted)';
@@ -866,6 +881,10 @@
             document.getElementById('val-roll').innerHTML = '- - &deg;';
             document.getElementById('val-pitch').innerHTML = '- - &deg;';
             document.getElementById('mpuGaugeVal').style.strokeDashoffset = 283;
+            if (boatIcon) {
+                boatIcon.style.transform = `rotate(0deg)`;
+                boatIcon.style.color = 'var(--border-color)';
+            }
         }
         
         document.getElementById('mpuGaugeVal').style.stroke = mpuColor;

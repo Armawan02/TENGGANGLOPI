@@ -59,7 +59,8 @@ class TelemetryController extends Controller
             ];
             
             // 3. Menggabungkan "Kemiringan" ke Gyroscope sesuai format aplikasi Anda
-            $kemiringan = (float) $request->input('Kemiringan', 0);
+            // Perahu mengirim key "Miring", kita tampung juga "Kemiringan" sebagai fallback
+            $kemiringan = (float) $request->input('Miring', $request->input('Kemiringan', 0));
             
             $nodeData['gyroscope'] = [
                 'x' => (float) $request->input('Roll', $kemiringan),
@@ -69,6 +70,7 @@ class TelemetryController extends Controller
             
             // 4. Format Water Level
             $nodeData['waterLevel'] = (float) $request->input('JarakAir', $nodeData['waterLevel'] ?? 0);
+            $nodeData['water_status'] = $request->input('StatusAir', $request->input('Bocor', $nodeData['water_status'] ?? 'Aman'));
             
             // 5. LoRa RSSI
             $nodeData['rssi'] = (int) $request->input('Rssi', $nodeData['rssi'] ?? -85);
