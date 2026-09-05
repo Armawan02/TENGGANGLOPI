@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FirestoreSetupController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/setup-db', [FirestoreSetupController::class, 'setupDatabase']);
 
 Route::get('/', function () {
     return view('guest.index');
