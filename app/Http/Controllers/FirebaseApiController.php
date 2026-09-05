@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use App\Services\FirebaseService;
 
 class FirebaseApiController extends Controller
@@ -20,10 +21,14 @@ class FirebaseApiController extends Controller
     public function getFleetList()
     {
         try {
-            // Ambil dari collection fishermen, filter yang memiliki node_id
-            $fishermen = $this->firebaseService->getCollection('fishermen');
-            // Ambil data real-time sensor dari collection fleet
-            $fleetData = $this->firebaseService->getCollection('fleet');
+            // Ambil dari collection fishermen, dengan cache 60 detik
+            $fishermen = Cache::remember('firestore_fishermen', 60, function () {
+                return $this->firebaseService->getCollection('fishermen');
+            });
+            // Ambil data real-time sensor dari collection fleet, dengan cache 2 detik
+            $fleetData = Cache::remember('firestore_fleet', 2, function () {
+                return $this->firebaseService->getCollection('fleet');
+            });
             
             // Buat map (dictionary) untuk akses data fishermen berdasarkan node_id
             $fishermenMap = [];
@@ -71,8 +76,12 @@ class FirebaseApiController extends Controller
     public function getPublicFleetList()
     {
         try {
-            $fishermen = $this->firebaseService->getCollection('fishermen');
-            $fleetData = $this->firebaseService->getCollection('fleet');
+            $fishermen = Cache::remember('firestore_fishermen', 60, function () {
+                return $this->firebaseService->getCollection('fishermen');
+            });
+            $fleetData = Cache::remember('firestore_fleet', 2, function () {
+                return $this->firebaseService->getCollection('fleet');
+            });
             
             $fishermenMap = [];
             foreach ($fishermen as $f) {
@@ -113,7 +122,9 @@ class FirebaseApiController extends Controller
     public function getRecentLogs(\Illuminate\Http\Request $request)
     {
         try {
-            $logs = $this->firebaseService->getCollection('history_logs');
+            $logs = Cache::remember('firestore_history_logs', 10, function () {
+                return $this->firebaseService->getCollection('history_logs');
+            });
             
             $dateFilter = $request->query('date');
             $statusFilter = $request->query('status');
